@@ -87,6 +87,9 @@ uint32_t TCS3200::read_green() {
     this->select_filter(TCS3200_COLOR_GREEN);
 
     long green = (long)pulseIn(this->_out_pin, LOW);
+
+    if(!this->is_calibrated) return green;
+
     green = map(green, this->min_g, this->max_g, 255, 0);
 
     return max(min(green, 255), 0);
@@ -96,6 +99,9 @@ uint32_t TCS3200::read_blue() {
     this->select_filter(TCS3200_COLOR_BLUE);
 
     long blue = (long)pulseIn(this->_out_pin, LOW);
+
+    if(!this->is_calibrated) return blue;
+
     blue = map(blue, this->min_b, this->max_b, 255, 0);
 
     return max(min(blue, 255), 0);

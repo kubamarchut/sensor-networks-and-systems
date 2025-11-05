@@ -72,6 +72,7 @@ void setup() {
     tcs3200.calibrate_dark(r, g, b);
     Serial.println("done");
     Serial.println(String(r) + " " + String(g) + " " + String(b));
+    tcs3200.calibrate();
     delay(5000);
 }
 
