@@ -49,7 +49,30 @@ void setup() {
 //    tcs3200.calibrate();
 
     // Add a delay to allow time for the serial output to be read
-    delay(1000);
+
+    delay(5000);
+    Serial.println("kalibracja jasna");
+
+    uint32_t r = tcs3200.read_red();
+    uint32_t g = tcs3200.read_green();
+    uint32_t b = tcs3200.read_blue();
+
+    tcs3200.calibrate_light(r, g, b);
+    Serial.println("done");
+    Serial.println(String(r) + " " + String(g) + " " + String(b));
+
+    delay(5000);
+
+    Serial.println("kalibracja ciemna");
+
+    r = tcs3200.read_red();
+    g = tcs3200.read_green();
+    b = tcs3200.read_blue();
+
+    tcs3200.calibrate_dark(r, g, b);
+    Serial.println("done");
+    Serial.println(String(r) + " " + String(g) + " " + String(b));
+    delay(5000);
 }
 
 void loop() {
