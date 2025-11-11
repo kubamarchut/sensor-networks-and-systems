@@ -6,6 +6,9 @@
 #define MAX_SENSORS 10          // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 32        // Maks. rozmiar danych z jednego urządzenia
 
+#define START_BYTE  0xAA        // UART znak start
+#define STOP_BYTE   0x55        // UART znak stop
+
 struct SensorInfo {
   uint8_t address;
 };
@@ -14,6 +17,7 @@ SensorInfo sensors[MAX_SENSORS];
 uint8_t sensorCount = 0;
 
 unsigned long lastRequestTime = 0;
+uint8_t seqNum = 0;
 
 // Faza wykrywania urządzeń I2C
 void discoverI2CDevices() {
@@ -67,24 +71,39 @@ uint8_t readSensor(uint8_t addr, uint8_t *buffer) {
 
 // Wysłanie ramki UART (ramka binarna)
 void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
-  uint8_t startByte = 0xAA;
-  uint8_t stopByte  = 0x55;
+  uint8_t frame[256];
+  uint8_t pos = 0;
+  
+  frame[pos++] = START_BYTE;
+  frame[pos++] = NODE_ID;
+  frame[pos++] = seqNum++;
+  frame[pos++] = sensorCount;
 
+  for (uint8_t i = 0; i < sensorCount; i++) {
+    uint8_t addr = sensors[i].address;
+    uint8_t data[MAX_DATA_SIZE];
+    uint8_t dataLen = readSensor(addr, data);
+    if (dataLen == 0) continue;
+
+    // sekcja sensora
+    frame[pos++] = addr;
+    frame[pos++] = dataLen / 2;
+
+    // dane rejestrów
+    for (uint8_t j = 0; j < dataLen; i += 2) {
+      frame[pos++] = data[j];
+      frame[pos++] = data[j + 1];
+    }
+  }
+  
   // Prosty CRC: suma modulo 256
-  uint8_t crc = NODE_ID + sensorAddr;
-  for (uint8_t i = 0; i < dataLen; i++) crc += data[i];
+  uint8_t crc = 0;
+  for (uint8_t i = 1; i < pos; i++) crc += data[i];
+  frame[pos++] = crc;
 
-  Serial.write(startByte);
-  Serial.write(NODE_ID);
-  Serial.write(sensorCount);
-  Serial.write(sensorAddr | 0x01);
-  Serial.write(dataLen);
+  frame[pos++] = STOP_BYTE;
 
-  // Dane surowe
-  for (uint8_t i = 0; i < dataLen; i++) Serial.write(data[i]);
-
-  Serial.write(crc);
-  Serial.write(stopByte);
+  Serial.write(frame, pos);
 }
 
 void setup() {
