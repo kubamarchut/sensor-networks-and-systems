@@ -85,6 +85,8 @@ void processFrame(uint8_t *frame, uint8_t length) {
       sf.regs[r].regAddr  = frame[pos++];
       sf.regs[r].regValue = frame[pos++];
     }
+
+    storeSensorFrame(sf);
     
     Serial.print("Otrzymano ramke od ");
     Serial.print(senderAddr, HEX);

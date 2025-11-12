@@ -25,12 +25,16 @@ void discoverI2CDevices() {
   sensorCount = 0;
 
   for (uint8_t addr = 1; addr < 127; addr++) {
+    if (addr == 0x60 || addr == 0x6B)
+      continue;
+    
     Wire.beginTransmission(addr);
     uint8_t error = Wire.endTransmission();
 
     if (error == 0) {
       if (sensorCount < MAX_SENSORS) {
         sensors[sensorCount].address = addr;
+        Serial.println(addr, HEX);
         sensorCount++;
       }
     }
@@ -44,10 +48,12 @@ void discoverI2CDevices() {
 
 // Odczyt danych z danego czujnika
 uint8_t readSensor(uint8_t addr, uint8_t *buffer) {
+  Serial.print("odczyt po adresie ");
+  Serial.println(addr, HEX);
   uint8_t N = 0;
 
   // Zapytanie o rozmiarze 1 bajt
-  Wire.requestFrom(addr, (uint8_t)1, (uint8_t)false);
+  Wire.requestFrom(addr, (uint8_t)1);
   if (Wire.available()) {
     N = Wire.read();
   }
@@ -55,17 +61,23 @@ uint8_t readSensor(uint8_t addr, uint8_t *buffer) {
     return 0;
   }
 
+  N *= 2;
+  Serial.print("N=");
+  Serial.println(N);
   // Sprawdzenie poprawności rozmiaru
   if (N == 0 || N > MAX_DATA_SIZE) return 0;
 
   // Odczyt właściwych danych
-  Wire.requestFrom(addr, N, (uint8_t)true);
+  Wire.requestFrom(addr, N);
 
   uint8_t bytesRead = 0;
   while (Wire.available() && bytesRead < N) {
-    buffer[bytesRead++] = Wire.read();
+    buffer[bytesRead] = Wire.read();
+    Serial.print(buffer[bytesRead], HEX);
+    Serial.print("-");
+    bytesRead++;
   }
-  
+  Serial.print("\n");
   return bytesRead;
 }
 
@@ -82,7 +94,6 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
   for (uint8_t i = 0; i < sensorCount; i++) {
     uint8_t addr = sensors[i].address;
     uint8_t data[MAX_DATA_SIZE];
-    uint8_t dataLen = readSensor(addr, data);
     if (dataLen == 0) continue;
 
     // sekcja sensora
@@ -107,11 +118,12 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
 }
 
 void setup() {
-  Wire.begin();          
   Serial.begin(9600);    
   while(!Serial);
   Serial.println("W1 uruchomiony");
+  Wire.begin();          
   discoverI2CDevices();
+  delay(1000);
 }
 
 void loop() {
@@ -121,10 +133,15 @@ void loop() {
       uint8_t buffer[MAX_DATA_SIZE];
       
       uint8_t bytesRead = readSensor(addr, buffer);
+      Serial.print("Read msg of ");
+      Serial.print(bytesRead);
+      Serial.println(" size");
       if (bytesRead > 0) {
-        sendUARTFrame(addr, buffer, bytesRead);
+        //sendUARTFrame(addr, buffer, bytesRead);
       }
     }
     lastRequestTime = millis();
   }
+
+  delay(10);
 }
