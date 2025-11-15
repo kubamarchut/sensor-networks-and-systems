@@ -9,9 +9,79 @@
 #define START_BYTE  0xAA        // UART znak start
 #define STOP_BYTE   0x55        // UART znak stop
 
+// wprowadzone zmiany 15.11.2025
 struct SensorInfo {
   uint8_t address;
 };
+
+struct FrameMetaData {
+  uint8_t start;
+  uint8_t node_address;
+  uint8_t sequential_number;
+  uint8_t sensor_count;
+  uint8_t crc8;
+};
+
+struct SensorMetaData {
+  uint8_t sensor_address;
+  uint8_t register_count;
+  uint8_t crc8;
+};
+
+struct SensorData {
+  uint8_t register_address;
+  uint8_t register_data;
+  uint8_t crc8;
+  //uint8_t array[3];
+  /*
+  void combine_data() {
+    array[1]=register_address;
+    array[2]=register_data;
+    array[3]=crc8;
+  }*/
+
+  //merge'owanie w ramke wszystkich danych
+  uint32_t combine() const {
+        return  (static_cast<uint32_t>(register_address) << 16) |
+                (static_cast<uint32_t>(register_data)    << 8)  |
+                 static_cast<uint32_t>(crc8);
+    }
+
+  //obliczanie crc8
+  uint8_t calculate_crc8(bool sender) {
+    uint16_t combined = (static_cast<uint16_t>(register_address) << 8) |
+                    static_cast<uint16_t>(register_data);
+  uint8_t crc;
+      // Oblicz CRC-8 (polynomial 0x07) / czy to jest dobre? / przetestowac czy ten polynomial dobry
+      if (sender) {
+         crc = 0x00;
+      } else {
+         crc = crc8;
+      }
+      const uint8_t polynomial = 0x07;
+
+      // Obliczamy CRC dla dwóch bajtów: high, then low
+      uint8_t bytes[2] = {
+          static_cast<uint8_t>((combined >> 8) & 0xFF),
+          static_cast<uint8_t>(combined & 0xFF)
+      };
+
+      for (uint8_t b : bytes) {
+          crc ^= b;
+          for (uint8_t i = 0; i < 8; i++) {
+              if (crc & 0x80)
+                  crc = (crc << 1) ^ polynomial;
+              else
+                  crc <<= 1;
+          }
+      }
+    
+    crc8 = crc; //zapisanie do pola struktyry
+    return crc; //zwrócenie CRC
+  }
+};
+
+///////////////// koniec zmian
 
 SensorInfo sensors[MAX_SENSORS];
 uint8_t sensorCount = 0;
