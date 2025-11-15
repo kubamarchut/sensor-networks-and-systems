@@ -10,6 +10,42 @@
 #define STOP_BYTE   0x55        // UART znak stop
 
 // wprowadzone zmiany 15.11.2025
+
+//////////////////////////
+// Nowa klasa CRC8Calculator
+//////////////////////////
+class CRC8Calculator {
+private:
+    uint8_t crcValue;
+    const uint8_t POLY = 0x07; 
+    const uint8_t INITIAL_VALUE = 0x00; 
+
+public:
+    CRC8Calculator() { reset(); }
+
+    void reset() { crcValue = INITIAL_VALUE; }
+
+    void update(uint8_t data) {
+        crcValue ^= data; 
+        for (int i = 0; i < 8; i++) {
+            if (crcValue & 0x80)
+                crcValue = (crcValue << 1) ^ POLY; 
+            else
+                crcValue <<= 1;
+        }
+    }
+
+    uint8_t calculate(const uint8_t* buffer, size_t length) {
+        reset();
+        for (size_t i = 0; i < length; i++)
+            update(buffer[i]);
+        return crcValue;
+    }
+
+    uint8_t getCRC() const { return crcValue; }
+};
+
+// Struktury
 struct SensorInfo {
   uint8_t address;
 };
@@ -47,41 +83,22 @@ struct SensorData {
                  static_cast<uint32_t>(crc8);
     }
 
-  //obliczanie crc8
+  //użycie klasy CRC8Calculator
   uint8_t calculate_crc8(bool sender) {
-    uint16_t combined = (static_cast<uint16_t>(register_address) << 8) |
-                    static_cast<uint16_t>(register_data);
-  uint8_t crc;
-      // Oblicz CRC-8 (polynomial 0x07) / czy to jest dobre? / przetestowac czy ten polynomial dobry
-      if (sender) {
-         crc = 0x00;
-      } else {
-         crc = crc8;
-      }
-      const uint8_t polynomial = 0x07;
+        CRC8Calculator crcCalc;
+        if (!sender)
+            crcCalc.update(crc8); // jeśli odbiorca, zaczynamy od poprzedniego CRC
 
-      // Obliczamy CRC dla dwóch bajtów: high, then low
-      uint8_t bytes[2] = {
-          static_cast<uint8_t>((combined >> 8) & 0xFF),
-          static_cast<uint8_t>(combined & 0xFF)
-      };
+        uint8_t bytes[2] = { register_address, register_data };
+        for (uint8_t b : bytes)
+            crcCalc.update(b);
 
-      for (uint8_t b : bytes) {
-          crc ^= b;
-          for (uint8_t i = 0; i < 8; i++) {
-              if (crc & 0x80)
-                  crc = (crc << 1) ^ polynomial;
-              else
-                  crc <<= 1;
-          }
-      }
-    
-    crc8 = crc; //zapisanie do pola struktyry
-    return crc; //zwrócenie CRC
-  }
+        crc8 = crcCalc.getCRC();  // zapis do pola
+        return crc8;
+    }
 };
 
-///////////////// koniec zmian
+
 
 SensorInfo sensors[MAX_SENSORS];
 uint8_t sensorCount = 0;
