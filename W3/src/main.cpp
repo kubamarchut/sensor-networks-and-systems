@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include "morslib.h"
 
 #define NODE_ID 0x03            // ID tego węzła
 #define MAX_SENSORS 10          // Maks. liczba urządzeń I2C
