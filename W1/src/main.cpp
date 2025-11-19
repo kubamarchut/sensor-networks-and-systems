@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include "morslib.h"
+#include <Crc8.h>
 
 #define NODE_ID 0x01            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
@@ -9,42 +9,6 @@
 
 #define START_BYTE  0xAA        // UART znak start
 #define STOP_BYTE   0x55        // UART znak stop
-
-// wprowadzone zmiany 15.11.2025
-
-//////////////////////////
-// Nowa klasa CRC8Calculator
-//////////////////////////
-class CRC8Calculator {
-private:
-    uint8_t crcValue;
-    const uint8_t POLY = 0x07; 
-    const uint8_t INITIAL_VALUE = 0x00; 
-
-public:
-    CRC8Calculator() { reset(); }
-
-    void reset() { crcValue = INITIAL_VALUE; }
-
-    void update(uint8_t data) {
-        crcValue ^= data; 
-        for (int i = 0; i < 8; i++) {
-            if (crcValue & 0x80)
-                crcValue = (crcValue << 1) ^ POLY; 
-            else
-                crcValue <<= 1;
-        }
-    }
-
-    uint8_t calculate(const uint8_t* buffer, size_t length) {
-        reset();
-        for (size_t i = 0; i < length; i++)
-            update(buffer[i]);
-        return crcValue;
-    }
-
-    uint8_t getCRC() const { return crcValue; }
-};
 
 // Struktury
 struct SensorInfo {
@@ -86,7 +50,7 @@ struct SensorData {
 
   //użycie klasy CRC8Calculator
   uint8_t calculate_crc8(bool sender) {
-        CRC8Calculator crcCalc;
+        Crc8 crcCalc;
         if (!sender)
             crcCalc.update(crc8); // jeśli odbiorca, zaczynamy od poprzedniego CRC
 
@@ -94,7 +58,7 @@ struct SensorData {
         for (uint8_t b : bytes)
             crcCalc.update(b);
 
-        crc8 = crcCalc.getCRC();  // zapis do pola
+        crc8 = crcCalc.getCrc();  // zapis do pola
         return crc8;
     }
 };
