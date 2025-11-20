@@ -7,61 +7,13 @@
 #define MAX_SENSORS 10          // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 32        // Maks. rozmiar danych z jednego urządzenia
 
-#define START_BYTE  0xAA        // UART znak start
-#define STOP_BYTE   0x55        // UART znak stop
 
 // Struktury
 struct SensorInfo {
   uint8_t address;
 };
 
-struct FrameMetaData {
-  uint8_t start;
-  uint8_t node_address;
-  uint8_t sequential_number;
-  uint8_t sensor_count;
-  uint8_t crc8;
-};
 
-struct SensorMetaData {
-  uint8_t sensor_address;
-  uint8_t register_count;
-  uint8_t crc8;
-};
-
-struct SensorData {
-  uint8_t register_address;
-  uint8_t register_data;
-  uint8_t crc8;
-  //uint8_t array[3];
-  /*
-  void combine_data() {
-    array[1]=register_address;
-    array[2]=register_data;
-    array[3]=crc8;
-  }*/
-
-  //merge'owanie w ramke wszystkich danych
-  uint32_t combine() const {
-        return  (static_cast<uint32_t>(register_address) << 16) |
-                (static_cast<uint32_t>(register_data)    << 8)  |
-                 static_cast<uint32_t>(crc8);
-    }
-
-  //użycie klasy CRC8Calculator
-  uint8_t calculate_crc8(bool sender) {
-        Crc8 crcCalc;
-        if (!sender)
-            crcCalc.update(crc8); // jeśli odbiorca, zaczynamy od poprzedniego CRC
-
-        uint8_t bytes[2] = { register_address, register_data };
-        for (uint8_t b : bytes)
-            crcCalc.update(b);
-
-        crc8 = crcCalc.getCrc();  // zapis do pola
-        return crc8;
-    }
-};
 
 
 
@@ -138,7 +90,7 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
   uint8_t frame[256];
   uint8_t pos = 0;
   
-  frame[pos++] = START_BYTE;
+  frame[pos++] = 0;
   frame[pos++] = NODE_ID;
   frame[pos++] = seqNum++;
   frame[pos++] = sensorCount;
@@ -164,7 +116,7 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
   for (uint8_t i = 1; i < pos; i++) crc += data[i];
   frame[pos++] = crc;
 
-  frame[pos++] = STOP_BYTE;
+  frame[pos++] = 0;
 
   Serial.write(frame, pos);
 }
