@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <Crc8.h>
+#include "Crc8.h"
 
 #define NODE_ID 0x01            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
