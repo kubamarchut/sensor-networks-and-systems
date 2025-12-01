@@ -60,13 +60,13 @@ void setup() {
 void loop() {
     while (Serial1.available()) {
         uint8_t data = Serial1.read();
-        uint8_t* frame_buffer = (uint8_t*) (&frames[current_frame_idx]);
+        uint8_t* frame_buffer = (uint8_t*) &frames[current_frame_idx];
         Serial.print("Reading data ");
         Serial.println(data);
 
         if (!current_frame_listening) {
             Serial.println("\tStarting frame");
-            if (data == (BB_MASK_START | BB_MASK_RES)) {
+            if (data == (BB_MASK_START | BB_MASK_SEN)) {
                 Serial.println("\t\tSTART_RES");
                 bb_frame_start();
                 stopwatch.reset();
@@ -90,7 +90,7 @@ void loop() {
             }
         } else if (current_frame_ptr == sizeof(bb_sensor_frame)+1) {
             Serial.println("\tStopping frame");
-            if (data == (BB_MASK_STOP | BB_MASK_RES)) {
+            if (data == (BB_MASK_STOP | BB_MASK_SEN)) {
                 Serial.println("\t\tSTOP_RES");
                 bb_frame_finish();
             } else {
