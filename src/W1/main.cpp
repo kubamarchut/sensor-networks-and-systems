@@ -4,8 +4,8 @@
 
 #define NODE_ID 0x01            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
-#define MAX_SENSORS 10          // Maks. liczba urządzeń I2C
-#define MAX_DATA_SIZE 32        // Maks. rozmiar danych z jednego urządzenia
+#define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
+#define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia
 
 
 // Struktury
@@ -13,15 +13,17 @@ struct SensorInfo {
   uint8_t address;
 };
 
-
-
-
-
 SensorInfo sensors[MAX_SENSORS];
 uint8_t sensorCount = 0;
 
 unsigned long lastRequestTime = 0;
 uint8_t seqNum = 0;
+
+uint8_t dataBuffer[MAX_SENSORS][MAX_DATA_SIZE*2];
+
+void clearDataBuffer() {
+    memset(dataBuffer, 0, sizeof(dataBuffer));
+}
 
 // Faza wykrywania urządzeń I2C
 void discoverI2CDevices() {
@@ -51,7 +53,8 @@ void discoverI2CDevices() {
 }
 
 // Odczyt danych z danego czujnika
-uint8_t readSensor(uint8_t addr, uint8_t *buffer) {
+uint8_t readSensor(uint8_t addr, uint8_t i) {
+  clearDataBuffer();
   Serial.print("odczyt po adresie ");
   Serial.println(addr, HEX);
   uint8_t N = 0;
@@ -75,13 +78,18 @@ uint8_t readSensor(uint8_t addr, uint8_t *buffer) {
   Wire.requestFrom(addr, N);
 
   uint8_t bytesRead = 0;
+  Serial.print("|");
   while (Wire.available() && bytesRead < N) {
-    buffer[bytesRead] = Wire.read();
-    Serial.print(buffer[bytesRead], HEX);
-    Serial.print("-");
+    dataBuffer[i][bytesRead] = Wire.read();
+
+    Serial.print(dataBuffer[i][bytesRead], HEX);
+    Serial.print("|");
     bytesRead++;
   }
-  Serial.print("\n");
+  Serial.println();
+
+  //sendUARTFrame();
+
   return bytesRead;
 }
 
@@ -95,22 +103,6 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
   frame[pos++] = seqNum++;
   frame[pos++] = sensorCount;
 
-  for (uint8_t i = 0; i < sensorCount; i++) {
-    uint8_t addr = sensors[i].address;
-    uint8_t data[MAX_DATA_SIZE];
-    if (dataLen == 0) continue;
-
-    // sekcja sensora
-    frame[pos++] = addr;
-    frame[pos++] = dataLen / 2;
-
-    // dane rejestrów
-    for (uint8_t j = 0; j < dataLen; i += 2) {
-      frame[pos++] = data[j];
-      frame[pos++] = data[j + 1];
-    }
-  }
-  
   // Prosty CRC: suma modulo 256
   uint8_t crc = 0;
   for (uint8_t i = 1; i < pos; i++) crc += data[i];
@@ -121,29 +113,29 @@ void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
   Serial.write(frame, pos);
 }
 
+void acquireData(){
+  discoverI2CDevices();
+  for (uint8_t i = 0; i < sensorCount; i++) {
+    uint8_t addr = sensors[i].address;
+    
+    uint8_t bytesRead = readSensor(addr, i);
+    Serial.print("Odczytano wiad o rozmiarze: ");
+    Serial.println(bytesRead);
+  }
+}
+
 void setup() {
   Serial.begin(9600);    
-  while(!Serial);
+  Serial1.begin(9600);    
+  while(!Serial and !Serial1);
   Serial.println("W1 uruchomiony");
-  Wire.begin();          
-  discoverI2CDevices();
+  Wire.begin();
   delay(1000);
 }
 
 void loop() {
   if (millis() - lastRequestTime >= DATA_PULL_FREQ) {
-    for (uint8_t i = 0; i < sensorCount; i++) {
-      uint8_t addr = sensors[i].address;
-      uint8_t buffer[MAX_DATA_SIZE];
-      
-      uint8_t bytesRead = readSensor(addr, buffer);
-      Serial.print("Read msg of ");
-      Serial.print(bytesRead);
-      Serial.println(" size");
-      if (bytesRead > 0) {
-        //sendUARTFrame(addr, buffer, bytesRead);
-      }
-    }
+    acquireData();
     lastRequestTime = millis();
   }
 

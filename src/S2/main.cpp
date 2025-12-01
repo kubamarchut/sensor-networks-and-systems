@@ -2,13 +2,13 @@
 #include <Wire.h>
 
 // adres I2C czujnika koloru
-#define SENSOR_ADDR 0x20
+#define SENSOR_ADDR 0x10
 
 // rejestry dla składowych RGB
 #define REG_CNT 3
-#define REG_R 0x21
-#define REG_G 0x22
-#define REG_B 0x23
+#define REG_R 0x11
+#define REG_G 0x12
+#define REG_B 0x13
 
 // do symulacji - co ile ms zmiana
 #define COLOR_UPDATE_FREQ 1000
