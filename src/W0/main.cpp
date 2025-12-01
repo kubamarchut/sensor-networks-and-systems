@@ -2,145 +2,75 @@
 #include <Wire.h>
 #include "morslib.h"
 
-#define NODE_ID 0x03            // ID tego węzła
-#define MAX_SENSORS 10          // Maks. liczba urządzeń I2C
-#define MAX_DATA_SIZE 32        // Maks. rozmiar danych z jednego urządzenia
-#define MAX_REGS_PER_SENSOR 8   // Maks. liczba rejestrów na sensor
+#define NODE_ID             0xFF   // ID tego węzła
+#define MAX_ZONE_2_NODES    10     // Maks. liczba węzłów I2C
+#define MAX_DATA_SIZE       32     // Maks. rozmiar danych z jednego urządzenia
+#define MAX_REGS_PER_SENSOR 8      // Maks. liczba rejestrów na sensor
+#define DATA_PULL_FREQ      10000  // Częst. odpytywania o dane
 
-#define START_BYTE  0xAA        // UART znak start
-#define STOP_BYTE   0x55        // UART znak stop
+morslib mymors(LED_BUILTIN, 200);
 
-struct RegisterPair {
-  uint8_t regAddr;
-  uint8_t regValue;
+struct SensorInfo {
+  uint8_t address;
 };
 
-// Struktura bufora dla danych z czujnikow
-struct SensorFrame {
-  uint8_t nodeAddr;
-  uint8_t seqNum;
-  uint8_t sensorAddr;
-  uint8_t regCount;
-  RegisterPair regs[MAX_REGS_PER_SENSOR];
-};
+SensorInfo sensors[MAX_ZONE_2_NODES];
+uint8_t sensorCount = 0;
 
-SensorFrame buffer[MAX_SENSORS];
-uint8_t bufferCount = 0;
+unsigned long lastRequestTime = 0;
 
-// Dane dla zadania I2C
-uint8_t requestedSensor = 0;
-bool hasRequest = false;
+// Faza wykrywania urządzeń I2C
+void discoverI2CDevices() {
+  Serial.println("Skanowanie magistrali I2C...");
+  sensorCount = 0;
 
-//void onI2CReceive(int numBytes);
-//void onI2CRequest();
-
-void storeSensorFrame(SensorFrame &sf) {
-  for (uint8_t i = 0; i < bufferCount; i++) {
-    if (buffer[i].sensorAddr == sf.sensorAddr) {
-      buffer[i] = sf;
-      return;
-    }
-  }
-  if (bufferCount < MAX_SENSORS) {
-    buffer[bufferCount++] = sf;
-  }
-}
-
-void processFrame(uint8_t *frame, uint8_t length) {
-  if (length < 3) return; // za krótka ramka
-
-  uint8_t senderAddr = frame[0];
-  uint8_t seqNum = frame[1];
-  uint8_t sensorCount = frame[2];
-
-  uint8_t pos = 3;
-  
-  if (sensorCount == 0 || sensorCount > MAX_SENSORS) return;
-
-  // oblicz CRC  
-  uint8_t recvCRC = frame[length - 1];
-  uint8_t calcCRC = 0;
-  for (uint8_t i = 0; i < length - 1; i++) {
-    calcCRC += frame[i];
-  }
-  if (calcCRC != recvCRC) {
-    Serial.println("CRC error");
-    return;
-  }
-
-  // przetworzenie bloku dla sensora
-  for (uint8_t i = 0; i < sensorCount; i++) {
-    if (pos + 1 >= length - 1) break; // za mało bajtów
-
-    SensorFrame sf;
-    sf.nodeAddr = senderAddr;
-    sf.seqNum = seqNum;
-    sf.sensorAddr = frame[pos++];
-    sf.regCount = frame[pos++];
-
-    if (sf.regCount > MAX_REGS_PER_SENSOR) sf.regCount = MAX_REGS_PER_SENSOR;
-
-    for (uint8_t r = 0; r < sf.regCount; r++) {
-      if (pos + 1 >= length - 1) break;
-
-      sf.regs[r].regAddr  = frame[pos++];
-      sf.regs[r].regValue = frame[pos++];
-    }
-
-    storeSensorFrame(sf);
-    
-    Serial.print("Otrzymano ramke od ");
-    Serial.print(senderAddr, HEX);
-    Serial.print(" (seq ");
-    Serial.print(seqNum);
-    Serial.print(") dane z ");
-    Serial.print(sensorCount);
-    Serial.println(" sensorow");
-  }
-  
-}
-
-void parseUARTFrames() {
-  static bool receiving = false;
-  static uint8_t frame[128];
-  static uint8_t idx = 0;
-
-  while (Serial.available()) {
-    uint8_t b = Serial.read();
-
-    if (!receiving) {
-      if (b == START_BYTE) { // poczatek ramki
-        receiving = true;
-        idx = 0;
-      }
+  for (uint8_t addr = 1; addr < 127; addr++) {
+    //mymors.handle();
+    if (addr == 0x60 || addr == 0x6B)
       continue;
-    }
+    
+    Wire.beginTransmission(addr);
+    uint8_t error = Wire.endTransmission();
 
-    if (receiving) {
-      if (b == STOP_BYTE) { // koniec ramki
-        processFrame(frame, idx);
-        receiving = false;
-        idx = 0;
-      }
-      else {
-        if (idx < sizeof(frame)) {
-          frame[idx++] = b;
-        }
+    if (error == 0) {
+      if (sensorCount < MAX_ZONE_2_NODES) {
+        sensors[sensorCount].address = addr;
+        Serial.println(addr, HEX);
+        sensorCount++;
       }
     }
+    //delay(10);
   }
+
+  Serial.print("Znaleziono ");
+  Serial.print(sensorCount);
+  Serial.println(" węzłów sąsiednich");  
 }
 
 void setup() {
+  mymors.begin();
   Serial.begin(9600);    
+  Wire.begin();
   while(!Serial);
-  //Wire.begin(NODE_ID);
-  //Wire.onReceive(onI2CReceive);
-  //Wire.onRequest(onI2CRequest);
 
-  Serial.println("W1 uruchomiony");
+  Serial.println("W0 uruchomiony");
+  mymors.queue('s');
+  mymors.queue('t');
+  mymors.queue('e');
+  delay(1000);
+  lastRequestTime = millis();
 }
 
 void loop() {
-  parseUARTFrames();
+  mymors.handle();
+  
+  if (millis() - lastRequestTime >= DATA_PULL_FREQ) {
+    discoverI2CDevices();
+    lastRequestTime = millis();
+    mymors.queue('?');
+    mymors.queue('n');
+
+  }
+
+  //delay(10);
 }
