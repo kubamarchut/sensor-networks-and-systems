@@ -1,12 +1,33 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "Crc8.h"
+#include <BroadcastBus.h>
 
 #define NODE_ID 0x01            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
 #define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia
 
+BroadcastBus bus = BroadcastBus();
+Stopwatch seqStopwatch = Stopwatch();
+
+bb_sensor_frame frame = {
+    .node_addr = NODE_ID,
+    .sensor_addr = 0,
+    .seq = 1,
+    .flags = 0b11010010,
+    .regs_len = 2,
+    .regs = {
+    {.addr = 0x11, .data = 41},
+    {.addr = 0x12, .data = 223},
+    {.addr = 0x1A, .data = 125},
+    {.addr = 0x1B, .data = 96},
+    {.addr = 0x1C, .data = 84},
+    {.addr = 0x2A, .data = 72},
+    {.addr = 0x2B, .data = 193},
+    {.addr = 0x2C, .data = 147},
+    },
+};
 
 // Struktury
 struct SensorInfo {
@@ -61,6 +82,7 @@ uint8_t readSensor(uint8_t addr, uint8_t i) {
 
   // Zapytanie o rozmiarze 1 bajt
   Wire.requestFrom(addr, (uint8_t)1);
+  frame.sensor_addr = addr;
   if (Wire.available()) {
     N = Wire.read();
   }
@@ -68,49 +90,30 @@ uint8_t readSensor(uint8_t addr, uint8_t i) {
     return 0;
   }
 
-  N *= 2;
+  //N *= 2;
   Serial.print("N=");
   Serial.println(N);
   // Sprawdzenie poprawności rozmiaru
-  if (N == 0 || N > MAX_DATA_SIZE) return 0;
+  if (N == 0 || N*2 > MAX_DATA_SIZE) return 0;
+
+  frame.regs_len = N;
 
   // Odczyt właściwych danych
-  Wire.requestFrom(addr, N);
-
-  uint8_t bytesRead = 0;
-  Serial.print("|");
-  while (Wire.available() && bytesRead < N) {
-    dataBuffer[i][bytesRead] = Wire.read();
-
-    Serial.print(dataBuffer[i][bytesRead], HEX);
-    Serial.print("|");
-    bytesRead++;
+  int bytesRead = Wire.requestFrom(addr, N*2);
+  for (int j = 0; j < N; j++)
+  {
+    if ((j+1)*2 > bytesRead)
+      break;
+    
+    frame.regs[j].addr = Wire.read();
+    frame.regs[j].data = Wire.read();
   }
-  Serial.println();
 
-  //sendUARTFrame();
+  seqStopwatch.reset();
+
+  bus.sendSensor(frame);
 
   return bytesRead;
-}
-
-// Wysłanie ramki UART (ramka binarna)
-void sendUARTFrame(uint8_t sensorAddr, uint8_t *data, uint8_t dataLen) {
-  uint8_t frame[256];
-  uint8_t pos = 0;
-  
-  frame[pos++] = 0;
-  frame[pos++] = NODE_ID;
-  frame[pos++] = seqNum++;
-  frame[pos++] = sensorCount;
-
-  // Prosty CRC: suma modulo 256
-  uint8_t crc = 0;
-  for (uint8_t i = 1; i < pos; i++) crc += data[i];
-  frame[pos++] = crc;
-
-  frame[pos++] = 0;
-
-  Serial.write(frame, pos);
 }
 
 void acquireData(){
@@ -134,10 +137,20 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - lastRequestTime >= DATA_PULL_FREQ) {
-    acquireData();
-    lastRequestTime = millis();
-  }
+  switch (bus.bSerial1.receiveCmd()) {
+    case BB_MASK_REQ:
+        if (bus.bSerial1.receiveData(1)) {
+          frame.seq = bus.bSerial1.rxBuffer.data[0];
+          acquireData();
+          bus.bSerial1.reset();
+        }
+        break;
+    }
+
+  //if (millis() - lastRequestTime >= DATA_PULL_FREQ) {
+  //  
+  //  lastRequestTime = millis();
+  //}
 
   delay(10);
 }
