@@ -14,6 +14,7 @@ public:
     char getbuf(int i);
 
 private:
+    void queue0(char znak, bool priority=0);
     bool dit();
     bool dah();
     bool pause();

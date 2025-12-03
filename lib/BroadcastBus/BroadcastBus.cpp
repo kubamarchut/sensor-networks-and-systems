@@ -1,12 +1,12 @@
 #include "BroadcastBus.h"
+#include <wiring_private.h>
 
 void BroadcastBus::begin() {
-    Serial1.begin(BB_BAUD);
-    Serial3.begin(BB_BAUD);
-    while (!Serial1) {}
-    while (!Serial3) {}
+    bSerial1.begin(BB_BAUD);
+    bSerial2.begin(BB_BAUD);
 
-    Serial3_init();
+    pinPeripheral(1, PIO_SERCOM);
+    pinPeripheral(0, PIO_SERCOM);
 }
 
 void BroadcastBus::startTransmission(uint8_t cmd) {
@@ -44,8 +44,8 @@ void BroadcastBus::sendFinish(uint8_t len) {
 }
 
 void BroadcastBus::write(uint8_t data) {
-    Serial1.write(data);
-    Serial3.write(data);
+    bSerial1.write(data);
+    bSerial2.write(data);
 }
 
 void BroadcastBus::writeData(uint8_t data) {
@@ -60,6 +60,6 @@ void BroadcastBus::writeData(uint8_t* data, size_t len) {
 }
 
 void BroadcastBus::flush() {
-    Serial1.flush();
-    Serial3.flush();
+    bSerial1.flush();
+    bSerial2.flush();
 }
