@@ -3,6 +3,7 @@
 #include <Crc8.h>
 
 BroadcastBus bus = BroadcastBus();
+Stopwatch seqStopwatch = Stopwatch();
 
 bb_sensor_frame frame = {
     .node_addr = 0xD9,
@@ -23,12 +24,29 @@ bb_sensor_frame frame = {
 };
 
 void setup() {
+    Serial.begin(115200);
     bus.begin();
+    while (!Serial);
+
+    Serial.println("Setup W2");
 }
 
 void loop() {
-    bus.sendSensor(frame);
-    bus.sendSensor(frame);
+    switch (bus.bSerial1.receiveCmd()) {
+        case BB_MASK_REQ:
+            if (bus.bSerial1.receiveData(1)) {
+                frame.seq = bus.bSerial1.rxBuffer.data[0];
+                Serial.print("New seq = ");
+                Serial.print(frame.seq);
+                Serial.print(", time = ");
+                Serial.print(seqStopwatch.getElapsed());
+                Serial.println();
+                seqStopwatch.reset();
+                bus.bSerial1.reset();
+            }
+            break;
+    }
+
     bus.sendSensor(frame);
 
     Serial.println("Sent frame");

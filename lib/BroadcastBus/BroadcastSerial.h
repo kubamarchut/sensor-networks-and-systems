@@ -2,22 +2,35 @@
 #define BROADCASTSERIAL_H
 
 #include <Arduino.h>
+#include <Crc8.h>
+#include <Stopwatch.h>
+#include <BroadcastConsts.h>
 
 extern Uart Serial3;
 
-void Serial3_init();
+class BroadcastSerial {
+private:
+    Uart& stream;
+    Crc8 rxCrc;
+    Stopwatch rxStopwatch = Stopwatch(100);
+public:
+    bb_buffer rxBuffer = {};
 
-// class BroadcastSerial {
-// private:
-//     Stream& stream;
-//     Crc8 txCrc;
-//     Crc8 rxCrc;
-// public:
-//     explicit BroadcastSerial(Stream&);
-//     void write(uint8_t);
-//     void writeData(uint8_t);
-//     void writeData(uint8_t*, size_t);
-//     void flush();
-// };
+    explicit BroadcastSerial(Uart&);
+
+    uint8_t receiveCmd();
+    bool receiveData(size_t);
+    void reset();
+
+    void begin(unsigned long);
+    int available();
+    uint8_t read();
+    uint8_t readData();
+    bool readChecksum();
+    void resetRxChecksum();
+
+    void write(uint8_t);
+    void flush();
+ };
 
 #endif //BROADCASTSERIAL_H

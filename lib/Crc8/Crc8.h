@@ -14,7 +14,7 @@ public:
     void reset();
     void update(uint8_t data);
     uint8_t calculate(const uint8_t* buffer, size_t length);
-    uint8_t getCrc() const; 
+    uint8_t getCrc() const;
 };
 
 #endif // CRC8_H
