@@ -33,12 +33,12 @@ uint8_t BroadcastSerial::receiveCmd() {
             }
         }
     } else {
-//        if (rxStopwatch.isTimeout()) {
-//            rxBuffer.cmd = 0;
-//#ifdef BB_DEBUG
-//            Serial.println("[BB] Timeout");
-//#endif
-//        }
+        if (rxStopwatch.isTimeout()) {
+            rxBuffer.cmd = 0;
+#ifdef BB_DEBUG
+            Serial.println("[BB] Timeout");
+#endif
+        }
     }
     return rxBuffer.cmd;
 }
