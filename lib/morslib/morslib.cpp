@@ -110,6 +110,12 @@ void morslib::handle()
 
 void morslib::queue(char znak, bool priority)
 {
+    queue0('?', priority);
+    queue0(znak, priority);
+}
+
+void morslib::queue0(char znak, bool priority)
+{
     if (!priority)
     {
         int i = 0;
