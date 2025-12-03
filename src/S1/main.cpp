@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <TCS3200.h>
 
 // adres I2C czujnika koloru
 #define SENSOR_ADDR 0x20
@@ -11,10 +12,20 @@
 #define REG_B 0x23
 
 // do symulacji - co ile ms zmiana
-#define COLOR_UPDATE_FREQ 1000
+#define COLOR_UPDATE_FREQ 5000
 
 // timeout obsluga protokolu I2C
 #define COMM_STATE_TIMEOUT 500
+
+#define DEBUG 1
+#define S0_PIN 6
+#define S1_PIN 7
+#define S2_PIN 8
+#define S3_PIN 9
+#define OUT_PIN 5
+#define PIN_POWER 10
+
+TCS3200 tcs3200(S0_PIN, S1_PIN, S2_PIN, S3_PIN, OUT_PIN);
 
 // czas ostatniej zmiany
 unsigned long lastColorChangeTime = 0;
@@ -55,14 +66,67 @@ void setup() {
   Serial.print("S");
   Serial.print(SENSOR_ADDR);
   Serial.println(" (czujnik) uruchomiony");
+  Serial.println("kalibracja");
+
+  pinMode(PIN_POWER, OUTPUT);
+  digitalWrite(PIN_POWER, HIGH);
+  
+  // Init TCS3200
+  tcs3200.begin();
+  tcs3200.frequency_scaling(TCS3200_OFREQ_2P);
+  
+  //delay(3000);
+  //Serial.println("Calibrating white...");
+  
+  //uint32_t r = tcs3200.read_red();
+  //uint32_t g = tcs3200.read_green();
+  //uint32_t b = tcs3200.read_blue();
+
+  tcs3200.calibrate_light(490, 600, 500);
+  //Serial.print("R: "); Serial.print(r);
+  //Serial.print("  G: "); Serial.print(g);
+  //Serial.print("  B: "); Serial.println(b);
+  
+  //Serial.println("White calibration done");
+  
+  //delay(3000);
+  //Serial.println("Calibrating black...");
+
+  //r = tcs3200.read_red();
+  //g = tcs3200.read_green();
+  //b = tcs3200.read_blue();
+
+  tcs3200.calibrate_dark(5510, 6875, 5590);  
+  //Serial.print("R: "); Serial.print(r);
+  //Serial.print("  G: "); Serial.print(g);
+  //Serial.print("  B: "); Serial.println(b);
+  
+  
+  tcs3200.calibrate();
+  Serial.println("Calibration complete");
+  digitalWrite(PIN_POWER, LOW);
 }
 
 void loop() {
+  tcs3200.loop();   // required for library operation
   if (millis() - lastColorChangeTime >= COLOR_UPDATE_FREQ){
-    redVal   = random(0, 255);
-    greenVal = random(0, 255);
-    blueVal  = random(0, 255);
+    digitalWrite(PIN_POWER, HIGH);
+    delay(100);
 
+    // Read sensor
+    RGBColor rgb = tcs3200.read_rgb_color();
+    redVal   = (uint8_t) constrain(rgb.red,   0, 255);
+    greenVal = (uint8_t) constrain(rgb.green, 0, 255);
+    blueVal  = (uint8_t) constrain(rgb.blue,  0, 255);
+
+    // Debug to Serial
+    if (DEBUG){
+      Serial.print("DEBUG | R: "); Serial.print(redVal);
+      Serial.print("  G: "); Serial.print(greenVal);
+      Serial.print("  B: "); Serial.println(blueVal);
+    }
+
+    digitalWrite(PIN_POWER, LOW);
     lastColorChangeTime = millis();
   }
 
