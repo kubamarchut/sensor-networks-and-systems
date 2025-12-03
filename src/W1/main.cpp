@@ -8,6 +8,8 @@
 #define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia
 
+int last_seq = -1;
+
 BroadcastBus bus = BroadcastBus();
 Stopwatch seqStopwatch = Stopwatch();
 
@@ -141,8 +143,23 @@ void loop() {
     case BB_MASK_REQ:
         if (bus.bSerial1.receiveData(1)) {
           frame.seq = bus.bSerial1.rxBuffer.data[0];
-          acquireData();
+          if (frame.seq != last_seq){
+            acquireData();
+            last_seq = frame.seq;
+          }
           bus.bSerial1.reset();
+        }
+        break;
+      }
+      switch (bus.bSerial2.receiveCmd()) {
+        case BB_MASK_REQ:
+        if (bus.bSerial2.receiveData(1)) {
+          frame.seq = bus.bSerial2.rxBuffer.data[0];
+          if (frame.seq != last_seq){
+            acquireData();
+            last_seq = frame.seq;
+          }
+          bus.bSerial2.reset();
         }
         break;
     }
