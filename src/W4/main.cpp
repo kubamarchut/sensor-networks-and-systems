@@ -2,12 +2,42 @@
 #include <BroadcastBus.h>
 #include <Crc8.h>
 #include <Stopwatch.h>
+#include <Wire.h>
+
+#define NODE_ID 0x04
 
 bb_sensor_frame frames[BB_MAX_SENSORS];
 size_t current_frame_idx = 0;
 uint8_t seq = 0;
 BroadcastBus bus = BroadcastBus();
 Stopwatch seqStopwatch = Stopwatch(2000);
+
+int receivedSeq = -1;
+bool acqRequested = false;
+uint8_t dataLen = 0;
+
+void onI2CReceive(int len) {
+    if (len < 2) return;
+
+    uint8_t cmd = Wire.read();
+    
+    if (cmd == 'A') {
+        uint8_t seq = Wire.read();
+        receivedSeq = seq;
+        acqRequested = true;
+
+        Serial.print("[I2C] ACQ request seq=");
+        Serial.println(receivedSeq);
+    }
+}
+
+void onI2CRequest() {
+    if (dataLen > 0) {
+        Wire.write(dataBuffer, dataLen);
+    } else {
+        Wire.write((uint8_t)0x00);
+    }
+}
 
 void bb_frame_finish() {
     Serial.println("Finished frame");
@@ -34,6 +64,9 @@ void bb_frame_finish() {
 }
 
 void setup() {
+    Wire.begin(NODE_ID);
+    Wire.onReceive(onI2CReceive);
+    Wire.onRequest(onI2CRequest);
     Serial.begin(115200);
     bus.begin();
     while (!Serial);
