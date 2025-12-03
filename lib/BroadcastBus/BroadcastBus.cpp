@@ -37,8 +37,9 @@ void BroadcastBus::sendSensor(bb_sensor_frame& data) {
     endTransmission();
 }
 
-void BroadcastBus::sendFinish(uint8_t len) {
+void BroadcastBus::sendFinish(uint8_t seq, uint8_t len) {
     startTransmission(BB_MASK_FIN);
+    writeData(seq);
     writeData(len);
     endTransmission();
 }

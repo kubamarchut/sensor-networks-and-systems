@@ -127,6 +127,7 @@ void acquireData(){
     Serial.print("Odczytano wiad o rozmiarze: ");
     Serial.println(bytesRead);
   }
+  bus.sendFinish(frame.seq, sensorCount);
 }
 
 void setup() {

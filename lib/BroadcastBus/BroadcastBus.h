@@ -20,7 +20,7 @@ public:
     void endTransmission();
     void sendRequest(uint8_t);
     void sendSensor(bb_sensor_frame&);
-    void sendFinish(uint8_t);
+    void sendFinish(uint8_t, uint8_t);
 
     void write(uint8_t);
     void writeData(uint8_t);
