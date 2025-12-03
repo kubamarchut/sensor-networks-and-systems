@@ -5,62 +5,53 @@
 #include <Wire.h>
 
 #define NODE_ID 0x04
+#define MAX_SENSORS 16
 
-bb_sensor_frame frames[BB_MAX_SENSORS];
-size_t current_frame_idx = 0;
-uint8_t seq = 0;
 BroadcastBus bus = BroadcastBus();
-Stopwatch seqStopwatch = Stopwatch(2000);
 
-int receivedSeq = -1;
+bb_sensor_frame frames[MAX_SENSORS];
+size_t frames_length = 0;
+size_t frames_ptr = 0;
+
+Stopwatch finish_stopwatch = Stopwatch(1000);
+bool uart1_finish = false, uart2_finish = false;
+
+uint8_t seq = 0;
+
 bool acqRequested = false;
-uint8_t dataLen = 0;
 
 void onI2CReceive(int len) {
-    if (len < 2) return;
+    if (len < 1) return;
 
     uint8_t cmd = Wire.read();
     
     if (cmd == 'A') {
-        uint8_t seq = Wire.read();
-        receivedSeq = seq;
+        seq = Wire.read();
         acqRequested = true;
 
-        Serial.print("[I2C] ACQ request seq=");
-        Serial.println(receivedSeq);
+        frames_length = 0;
+        frames_ptr = 0;
+        bus.sendRequest(seq);
+        finish_stopwatch.reset();
     }
 }
 
 void onI2CRequest() {
-    if (dataLen > 0) {
-        Wire.write(dataBuffer, dataLen);
+    if (frames_ptr < frames_length) {
+        Wire.write((uint8_t*) (&frames[frames_ptr++]), sizeof(bb_sensor_frame));
     } else {
-        Wire.write((uint8_t)0x00);
+        if ((uart1_finish && uart2_finish) || finish_stopwatch.isTimeout()) {
+            Wire.write(1);
+        } else {
+            Wire.write(0);
+        }
     }
 }
 
 void bb_frame_finish() {
     Serial.println("Finished frame");
-    Serial.print("\tNode address = 0x");
-    Serial.println(frames[current_frame_idx].node_addr, HEX);
-    Serial.print("\tSensor address = 0x");
-    Serial.println(frames[current_frame_idx].sensor_addr, HEX);
-    Serial.print("\tSeq = ");
-    Serial.println(frames[current_frame_idx].seq);
-    Serial.print("\tFlags = 0b");
-    Serial.println(frames[current_frame_idx].flags, BIN);
-    Serial.print("\tRegisters length =");
-    Serial.println(frames[current_frame_idx].regs_len, DEC);
-    for (size_t i = 0; i < BB_MAX_REGISTERS; i++) {
-        Serial.print("\tRegister[");
-        Serial.print(i, DEC);
-        Serial.print("] = 0x");
-        Serial.print(frames[current_frame_idx].regs[i].addr, HEX);
-        Serial.print(" - ");
-        Serial.println(frames[current_frame_idx].regs[i].data);
-    }
-
-    current_frame_idx = (current_frame_idx + 1) % BB_MAX_SENSORS;
+    bb_print_frame(frames[frames_length]);
+    frames_length = (frames_length + 1) % BB_MAX_SENSORS;
 }
 
 void setup() {
@@ -75,22 +66,38 @@ void setup() {
 }
 
 void loop() {
-    if (seqStopwatch.isTimeout()) {
-        bus.sendRequest(seq);
-        Serial.print("Next seq = ");
-        Serial.println(seq);
-        seqStopwatch.reset();
-        seq++;
-    }
-
     switch (bus.bSerial1.receiveCmd()) {
         case BB_MASK_SEN:
             if (bus.bSerial1.receiveData(sizeof(bb_sensor_frame))) {
-                memcpy(&frames[current_frame_idx], bus.bSerial1.rxBuffer.data, sizeof(bb_sensor_frame));
+                memcpy(&frames[frames_length], bus.bSerial1.rxBuffer.data, sizeof(bb_sensor_frame));
                 bb_frame_finish();
                 bus.bSerial1.reset();
             }
             break;
+        case BB_MASK_FIN:
+            if (bus.bSerial1.receiveData(2)) {
+//                uint8_t finishSeq = bus.bSerial1.rxBuffer.data[0];
+//                uint8_t sensorCount = bus.bSerial1.rxBuffer.data[1];
+                uart1_finish = true;
+            }
+            break;
     }
+    switch (bus.bSerial2.receiveCmd()) {
+        case BB_MASK_SEN:
+            if (bus.bSerial2.receiveData(sizeof(bb_sensor_frame))) {
+                memcpy(&frames[frames_length], bus.bSerial2.rxBuffer.data, sizeof(bb_sensor_frame));
+                bb_frame_finish();
+                bus.bSerial2.reset();
+            }
+            break;
+        case BB_MASK_FIN:
+            if (bus.bSerial2.receiveData(2)) {
+//                uint8_t finishSeq = bus.bSerial2.rxBuffer.data[0];
+//                uint8_t sensorCount = bus.bSerial2.rxBuffer.data[1];
+                uart2_finish = true;
+            }
+            break;
+    }
+
     delay(1);
 }
