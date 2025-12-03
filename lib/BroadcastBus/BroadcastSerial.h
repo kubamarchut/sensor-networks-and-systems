@@ -12,7 +12,7 @@ class BroadcastSerial {
 private:
     Uart& stream;
     Crc8 rxCrc;
-    Stopwatch rxStopwatch = Stopwatch(10);
+    Stopwatch rxStopwatch = Stopwatch(50);
 public:
     bb_buffer rxBuffer = {};
 
