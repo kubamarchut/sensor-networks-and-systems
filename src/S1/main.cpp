@@ -3,13 +3,13 @@
 #include <TCS3200.h>
 
 // adres I2C czujnika koloru
-#define SENSOR_ADDR 0x20
+#define SENSOR_ADDR 0x10
 
 // rejestry dla składowych RGB
 #define REG_CNT 3
-#define REG_R 0x21
-#define REG_G 0x22
-#define REG_B 0x23
+#define REG_R 0x11
+#define REG_G 0x12
+#define REG_B 0x13
 
 // do symulacji - co ile ms zmiana
 #define COLOR_UPDATE_FREQ 5000
@@ -66,7 +66,7 @@ void setup() {
   Serial.print("S");
   Serial.print(SENSOR_ADDR);
   Serial.println(" (czujnik) uruchomiony");
-  Serial.println("kalibracja");
+  //Serial.println("kalibracja");
 
   pinMode(PIN_POWER, OUTPUT);
   digitalWrite(PIN_POWER, HIGH);
@@ -82,7 +82,7 @@ void setup() {
   //uint32_t g = tcs3200.read_green();
   //uint32_t b = tcs3200.read_blue();
 
-  tcs3200.calibrate_light(490, 600, 500);
+  tcs3200.calibrate_light(1697, 2458, 2022);
   //Serial.print("R: "); Serial.print(r);
   //Serial.print("  G: "); Serial.print(g);
   //Serial.print("  B: "); Serial.println(b);
@@ -96,7 +96,7 @@ void setup() {
   //g = tcs3200.read_green();
   //b = tcs3200.read_blue();
 
-  tcs3200.calibrate_dark(5510, 6875, 5590);  
+  tcs3200.calibrate_dark(17167, 21969, 17972);  
   //Serial.print("R: "); Serial.print(r);
   //Serial.print("  G: "); Serial.print(g);
   //Serial.print("  B: "); Serial.println(b);
