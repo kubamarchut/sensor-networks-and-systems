@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <BroadcastConsts.h>
+#include <BroadcastBus.h>
 #include <Stopwatch.h>
 #include "morslib.h"
 
@@ -15,7 +15,7 @@ bb_sensor_frame frames[MAX_SENSORS];
 size_t frames_length;
 bool printed_frames = false;
 Stopwatch request_stopwatch = Stopwatch(DATA_PULL_FREQ);
-Stopwatch data_stopwatch = Stopwatch(100);
+Stopwatch data_stopwatch = Stopwatch(500);
 
 struct nodeInfo
 {
@@ -60,6 +60,11 @@ void discoverI2CDevices()
     // mymors.handle();
     if (addr == 0x60 || addr == 0x6B)
       continue;
+  Serial.print("Wysyłanie żądania do węzła (seq=");
+  Serial.print(seq);
+  Serial.print(") dla adresu ");
+      Serial.print("0x");
+      Serial.println(addr, HEX);
 
     Wire.beginTransmission(addr);
     Wire.write('A');
@@ -69,8 +74,6 @@ void discoverI2CDevices()
     if (error == 0)
     {
       addNode(addr);
-      Serial.print("0x");
-      Serial.println(addr, HEX);
     }
   }
 
@@ -103,7 +106,7 @@ void setup()
   Wire.begin();
   while (!Serial);
 
-  Serial.println("W0 uruchomiony");
+  Serial.println("W0 uruchomiony...");
   mymors.queue('s');
 }
 

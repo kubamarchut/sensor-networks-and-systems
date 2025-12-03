@@ -18,31 +18,41 @@ bool uart1_finish = false, uart2_finish = false;
 
 uint8_t seq = 0;
 
-bool acqRequested = false;
-
 void onI2CReceive(int len) {
     if (len < 1) return;
 
     uint8_t cmd = Wire.read();
-    
+
+    Serial.print("REQUEST cmd=");
+    Serial.print(cmd);
+
     if (cmd == 'A') {
+        Serial.print(",");
         seq = Wire.read();
-        acqRequested = true;
+        Serial.print(" seq=");
+        Serial.print(seq);
 
         frames_length = 0;
         frames_ptr = 0;
         bus.sendRequest(seq);
         finish_stopwatch.reset();
+        uart1_finish = false;
+        uart2_finish = false;
     }
 }
 
 void onI2CRequest() {
     if (frames_ptr < frames_length) {
+        Serial.print("Wysyłanie ramki frames_ptr=");
+        Serial.println(frames_ptr);
         Wire.write((uint8_t*) (&frames[frames_ptr++]), sizeof(bb_sensor_frame));
     } else {
+        Serial.print("Brak nowej ramki finished=");
         if ((uart1_finish && uart2_finish) || finish_stopwatch.isTimeout()) {
+            Serial.println(1);
             Wire.write(1);
         } else {
+            Serial.println(0);
             Wire.write(0);
         }
     }
@@ -55,12 +65,12 @@ void bb_frame_finish() {
 }
 
 void setup() {
-    Wire.begin(NODE_ID);
-    Wire.onReceive(onI2CReceive);
-    Wire.onRequest(onI2CRequest);
     Serial.begin(115200);
     bus.begin();
     while (!Serial);
+    Wire.begin(NODE_ID);
+    Wire.onReceive(onI2CReceive);
+    Wire.onRequest(onI2CRequest);
 
     Serial.println("Setup W4");
 }

@@ -14,10 +14,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Integracja strefy 2 z strefą 3">
-      <change afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.cpp" afterDir="false" />
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawka funkcji bb_print_frame">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W4/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W4/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +28,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="W0" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="W4" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -104,6 +105,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "structure.view.defaults.are.configured": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -125,7 +127,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1764783007065</updated>
-      <workItem from="1764783008722" duration="2595000" />
+      <workItem from="1764783008722" duration="4811000" />
     </task>
     <task id="LOCAL-00001" summary="Integracja strefy 2 z strefą 3">
       <option name="closed" value="true" />
@@ -135,7 +137,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764785302226</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Poprawka funkcji bb_print_frame">
+      <option name="closed" value="true" />
+      <created>1764785639880</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1764785639880</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -143,6 +153,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Integracja strefy 2 z strefą 3" />
-    <option name="LAST_COMMIT_MESSAGE" value="Integracja strefy 2 z strefą 3" />
+    <MESSAGE value="Poprawka funkcji bb_print_frame" />
+    <option name="LAST_COMMIT_MESSAGE" value="Poprawka funkcji bb_print_frame" />
   </component>
 </project>
