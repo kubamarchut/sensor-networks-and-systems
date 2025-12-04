@@ -1,20 +1,23 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include "morslib.h"
 
 #define DEBUG 1
 // adres I2C czujnika koloru
-#define SENSOR_ADDR 0x30
+#define SENSOR_ADDR 0x20
 
 // rejestry dla składowych RGB
 #define REG_CNT 2
-#define REG_R 0x31
-#define REG_G 0x32
+#define REG_R 0x21
+#define REG_G 0x22
 
 // do symulacji - co ile ms zmiana
 #define DATA_UPDATE_FREQ 2000
 
 // timeout obsluga protokolu I2C
 #define COMM_STATE_TIMEOUT 500
+
+morslib mymors(LED_BUILTIN, 200);
 
 // czas ostatniej zmiany
 unsigned long lastDataChangeTime = 0;
@@ -40,26 +43,30 @@ void onI2CRequest() {
   else if (communicationState == 1){
     Wire.write(REG_R); Wire.write(tempVal);
     Wire.write(REG_G); Wire.write(humVal);
+    mymors.queue('r');
 
     communicationState = 0;
   }
 }
 
 void setup() {
+  mymors.begin();
   Wire.begin(SENSOR_ADDR);
   Wire.onRequest(onI2CRequest);
   Serial.begin(9600);
-  while (!Serial);
+  //while (!Serial);
   Serial.print("S");
   Serial.print(SENSOR_ADDR);
+  mymors.queue('s');
   Serial.println(" (czujnik) uruchomiony");
 }
 
 void loop() {
+  mymors.handle();
   if (millis() - lastDataChangeTime >= DATA_UPDATE_FREQ){
-    tempVal = random(15, 25);
-    humVal  = random(40, 50);
-    
+    tempVal = random(5, 35);
+    humVal  = random(40, 80);
+    mymors.queue('p');
     if (DEBUG){
       Serial.print("DEBUG | TEMP: "); Serial.print(tempVal);
       Serial.print(" HUM: "); Serial.println(humVal);
