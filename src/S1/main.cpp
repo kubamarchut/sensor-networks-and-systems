@@ -75,31 +75,31 @@ void setup() {
   tcs3200.begin();
   tcs3200.frequency_scaling(TCS3200_OFREQ_2P);
   
-  //delay(3000);
-  //Serial.println("Calibrating white...");
+  // delay(3000);
+  // Serial.println("Calibrating white...");
   
-  //uint32_t r = tcs3200.read_red();
-  //uint32_t g = tcs3200.read_green();
-  //uint32_t b = tcs3200.read_blue();
+  // uint32_t r = tcs3200.read_red();
+  // uint32_t g = tcs3200.read_green();
+  // uint32_t b = tcs3200.read_blue();
 
-  tcs3200.calibrate_light(1697, 2458, 2022);
-  //Serial.print("R: "); Serial.print(r);
-  //Serial.print("  G: "); Serial.print(g);
-  //Serial.print("  B: "); Serial.println(b);
+  tcs3200.calibrate_light(1367, 1993, 1723);
+  // Serial.print("R: "); Serial.print(r);
+  // Serial.print("  G: "); Serial.print(g);
+  // Serial.print("  B: "); Serial.println(b);
   
-  //Serial.println("White calibration done");
+  // Serial.println("White calibration done");
   
-  //delay(3000);
-  //Serial.println("Calibrating black...");
+  // delay(3000);
+  // Serial.println("Calibrating black...");
 
-  //r = tcs3200.read_red();
-  //g = tcs3200.read_green();
-  //b = tcs3200.read_blue();
+  // r = tcs3200.read_red();
+  // g = tcs3200.read_green();
+  // b = tcs3200.read_blue();
 
-  tcs3200.calibrate_dark(17167, 21969, 17972);  
-  //Serial.print("R: "); Serial.print(r);
-  //Serial.print("  G: "); Serial.print(g);
-  //Serial.print("  B: "); Serial.println(b);
+  tcs3200.calibrate_dark(10269, 19202, 17411);  
+  // Serial.print("R: "); Serial.print(r);
+  // Serial.print("  G: "); Serial.print(g);
+  // Serial.print("  B: "); Serial.println(b);
   
   
   tcs3200.calibrate();

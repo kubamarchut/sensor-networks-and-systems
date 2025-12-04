@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#define DEBUG 1
 // adres I2C czujnika koloru
 #define SENSOR_ADDR 0x30
 
@@ -58,6 +59,11 @@ void loop() {
   if (millis() - lastDataChangeTime >= DATA_UPDATE_FREQ){
     tempVal = random(15, 25);
     humVal  = random(40, 50);
+    
+    if (DEBUG){
+      Serial.print("DEBUG | TEMP: "); Serial.print(tempVal);
+      Serial.print(" HUM: "); Serial.println(humVal);
+    }
 
     lastDataChangeTime = millis();
   }
