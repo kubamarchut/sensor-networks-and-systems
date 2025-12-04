@@ -42,5 +42,6 @@ typedef struct __attribute__((packed)) {
 } bb_buffer;
 
 void bb_print_frame(bb_sensor_frame& frame);
+void bb_print_frame_compact(bb_sensor_frame& frame);
 
 #endif // BROADCAST_CONSTS

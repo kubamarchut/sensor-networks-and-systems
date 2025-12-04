@@ -20,3 +20,33 @@ void bb_print_frame(bb_sensor_frame& frame) {
         Serial.println(frame.regs[i].data);
     }
 }
+
+void bb_print_frame_compact(const bb_sensor_frame& frame) {
+    Serial.print("Node=0x");
+    Serial.print(frame.node_addr, HEX);
+
+    Serial.print(" Sensor=0x");
+    Serial.print(frame.sensor_addr, HEX);
+
+    Serial.print(" Seq=");
+    Serial.print(frame.seq);
+
+    Serial.print(" Flags=0b");
+    Serial.print(frame.flags, BIN);
+
+    Serial.print(" Regs(");
+    Serial.print(frame.regs_len);
+    Serial.print(")=");
+
+    // Print only real registers on a single line
+    for (size_t i = 0; i < frame.regs_len; i++) {
+        Serial.print("[0x");
+        Serial.print(frame.regs[i].addr, HEX);
+        Serial.print(":");
+        Serial.print(frame.regs[i].data);
+        Serial.print("]");  
+        if (i < frame.regs_len - 1) Serial.print(","); // comma-separate
+    }
+
+    Serial.println(); // end the line
+}
