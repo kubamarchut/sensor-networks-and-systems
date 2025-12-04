@@ -9,6 +9,10 @@
 #define DATA_PULL_FREQ 10000  // Częst. odpytywania o dane
 #define MAX_REGS 16*8        // Maks. liczba czujników w sieci
 
+#define I2C_STATUS_EMPTY    0x51
+#define I2C_STATUS_DATA     0x62
+#define I2C_STATUS_FINISHED 0x73
+
 morslib mymors(LED_BUILTIN, 200);
 
 bb_sensor_frame frames[MAX_REGS];
@@ -34,6 +38,7 @@ void print_frames() {
         bb_print_frame(frames[i]);
     }
     printed_frames = true;
+    frames_length = 0;
 }
 
 void addNode(uint8_t addr)
@@ -85,24 +90,29 @@ void discoverI2CDevices()
 void requestData(uint8_t i) {
     Crc8 crc;
     uint8_t addr = nodes[i].address;
-    size_t bytes = Wire.requestFrom(addr, sizeof(bb_sensor_frame)+1);
+    size_t bytes = Wire.requestFrom(addr, sizeof(bb_sensor_frame)+2);
     Serial.print("Odbieranie danych ");
     Serial.println(bytes);
 
-    if (bytes <= sizeof(bb_sensor_frame)+1 && Wire.available() <= sizeof(bb_sensor_frame)+1) {
+    uint8_t first_byte = Wire.read();
+
+    if (first_byte == I2C_STATUS_EMPTY) {
+        Serial.println("[I2C] No data available");
+        return;
+    }
+    else if (first_byte == I2C_STATUS_FINISHED) {
+        nodes[i].finished = 1;
+        Serial.println("[I2C] Data finished");
+        return;
+    } else if (first_byte == I2C_STATUS_DATA) {
         Wire.readBytes((uint8_t*) (&frames[frames_length]), sizeof(bb_sensor_frame));
         crc.calculate((uint8_t*) (&frames[frames_length]), sizeof(bb_sensor_frame));
         int readCrc = Wire.read();
         if (crc.getCrc() == readCrc) {
-            frames_length = max(frames_length + 1, MAX_REGS);
+            frames_length = min(frames_length + 1, MAX_REGS);
             Serial.println("\tZnaleziono ramkę");
         } else {
             Serial.println("\tBłędna ramka");
-        }
-    } else {
-        nodes[i].finished = Wire.read();
-        if (nodes[i].finished) {
-            print_frames();
         }
     }
 

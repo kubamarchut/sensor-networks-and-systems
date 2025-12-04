@@ -17,7 +17,7 @@
 #define BB_ECHO_TIMEOUT (50) // ms
 #define BB_DELAY_MIN (500) //ms
 #define BB_DELAY_MAX (1000) //ms
-#define BB_DEBUG
+//#define BB_DEBUG
 
 typedef struct __attribute__((packed)) {
     uint8_t addr;

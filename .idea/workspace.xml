@@ -14,13 +14,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki W0 i W4">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki w komunikacji węzłów strefy 2 i 3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W4/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W4/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -131,7 +128,7 @@
       <option name="presentableId" value="Default" />
       <updated>1764783007065</updated>
       <workItem from="1764783008722" duration="7046000" />
-      <workItem from="1764855182119" duration="5688000" />
+      <workItem from="1764855182119" duration="8136000" />
     </task>
     <task id="LOCAL-00001" summary="Integracja strefy 2 z strefą 3">
       <option name="closed" value="true" />
@@ -157,7 +154,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764788392483</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Poprawki w komunikacji węzłów strefy 2 i 3">
+      <option name="closed" value="true" />
+      <created>1764861072715</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1764861072715</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -167,6 +172,7 @@
     <MESSAGE value="Integracja strefy 2 z strefą 3" />
     <MESSAGE value="Poprawka funkcji bb_print_frame" />
     <MESSAGE value="Poprawki W0 i W4" />
-    <option name="LAST_COMMIT_MESSAGE" value="Poprawki W0 i W4" />
+    <MESSAGE value="Poprawki w komunikacji węzłów strefy 2 i 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="Poprawki w komunikacji węzłów strefy 2 i 3" />
   </component>
 </project>
