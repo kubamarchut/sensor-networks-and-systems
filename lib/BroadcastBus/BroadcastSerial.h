@@ -13,10 +13,11 @@ private:
     Uart& stream;
     Crc8 rxCrc;
     Stopwatch rxStopwatch = Stopwatch(50);
+    int serialIdx;
 public:
     bb_buffer rxBuffer = {};
 
-    explicit BroadcastSerial(Uart&);
+    explicit BroadcastSerial(Uart&, int);
 
     uint8_t receiveCmd();
     bool receiveData(size_t);

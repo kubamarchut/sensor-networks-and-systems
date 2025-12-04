@@ -14,10 +14,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawka funkcji bb_print_frame">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki W0 i W4">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W4/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W4/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +31,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="W4" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="W0" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -37,18 +40,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "deyanix"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;deyanix&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/kubamarchut/sensor-networks-and-systems.git",
-    "accountId": "09f9f1dd-858e-4bd2-bdd6-e56972a6616a"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/kubamarchut/sensor-networks-and-systems.git&quot;,
+    &quot;accountId&quot;: &quot;09f9f1dd-858e-4bd2-bdd6-e56972a6616a&quot;
   }
-}]]></component>
+}</component>
   <component name="PlatformioLocalSettings">
     <option name="availableProjects">
       <map>
@@ -82,37 +85,37 @@
     <option name="minorVersion" value="1.4" />
     <option name="productBranch" value="Classic" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="36LPiWVwr3kgdULqskyfCQzPe8q" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "PlatformIO.PlatformIO.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "structure.view.defaults.are.configured": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;PlatformIO.PlatformIO.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;structure.view.defaults.are.configured&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sensor-networks-and-systems" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
@@ -127,7 +130,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1764783007065</updated>
-      <workItem from="1764783008722" duration="4811000" />
+      <workItem from="1764783008722" duration="7046000" />
+      <workItem from="1764855182119" duration="5688000" />
     </task>
     <task id="LOCAL-00001" summary="Integracja strefy 2 z strefą 3">
       <option name="closed" value="true" />
@@ -145,7 +149,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764785639880</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Poprawki W0 i W4">
+      <option name="closed" value="true" />
+      <created>1764788392483</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1764788392483</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -154,6 +166,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Integracja strefy 2 z strefą 3" />
     <MESSAGE value="Poprawka funkcji bb_print_frame" />
-    <option name="LAST_COMMIT_MESSAGE" value="Poprawka funkcji bb_print_frame" />
+    <MESSAGE value="Poprawki W0 i W4" />
+    <option name="LAST_COMMIT_MESSAGE" value="Poprawki W0 i W4" />
   </component>
 </project>

@@ -7,26 +7,43 @@ void SERCOM3_Handler() {
     Serial3.IrqHandler();
 }
 
-BroadcastSerial::BroadcastSerial(Uart& stream) : stream(stream) {
+BroadcastSerial::BroadcastSerial(Uart& stream, int serialIdx)
+    : stream(stream), serialIdx(serialIdx) {
 }
 
 uint8_t BroadcastSerial::receiveCmd() {
     if (rxBuffer.cmd == 0) {
         if (available()) {
+#ifdef BB_DEBUG
+            Serial.print("[S");
+            Serial.print(serialIdx);
+            Serial.print("]");
+            Serial.print("[BB] Available CMD buffer ");
+            Serial.println(available());
+#endif
             int cmd = read();
 #ifdef BB_DEBUG
+            Serial.print("[S");
+            Serial.print(serialIdx);
+            Serial.print("]");
             Serial.print("[BB] Reading CMD = 0x");
             Serial.println(cmd, HEX);
 #endif
             cmd ^= BB_MASK_START;
             if (cmd & 0xF0) {
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] CMD incorrect = 0x");
                 Serial.println(cmd, HEX);
 #endif
             } else {
                 rxBuffer.cmd = cmd;
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] CMD correct = 0x");
                 Serial.println(cmd, HEX);
 #endif
@@ -34,8 +51,11 @@ uint8_t BroadcastSerial::receiveCmd() {
         }
     } else {
         if (rxStopwatch.isTimeout()) {
-            rxBuffer.cmd = 0;
+            reset();
 #ifdef BB_DEBUG
+            Serial.print("[S");
+            Serial.print(serialIdx);
+            Serial.print("]");
             Serial.println("[BB] Timeout");
 #endif
         }
@@ -45,19 +65,41 @@ uint8_t BroadcastSerial::receiveCmd() {
 
 bool BroadcastSerial::receiveData(size_t len) {
     while (available()) {
+#ifdef BB_DEBUG
+        Serial.print("[S");
+        Serial.print(serialIdx);
+        Serial.print("]");
+        Serial.print("[BB] Available buffer ");
+        Serial.println(available());
+#endif
         if (rxBuffer.length < len) {
-            rxBuffer.data[rxBuffer.length++] = readData();
+            int data = readData();
+            rxBuffer.data[rxBuffer.length++] = data;
+#ifdef BB_DEBUG
+            Serial.print("[S");
+            Serial.print(serialIdx);
+            Serial.print("]");
+            Serial.print("[BB] Read data = ");
+            Serial.println(data);
+#endif
         } else if (!rxBuffer.hasCrc) {
             rxBuffer.crc = read();
             rxBuffer.hasCrc = true;
             if (rxBuffer.crc != rxCrc.getCrc()) {
                 reset();
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] CRC is incorrect | crc=");
                 Serial.println(rxBuffer.crc);
 #endif
+                return false;
             } else {
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] CRC is correct | crc=");
                 Serial.println(rxBuffer.crc);
 #endif
@@ -66,12 +108,18 @@ bool BroadcastSerial::receiveData(size_t len) {
             uint8_t cmd = read() ^ BB_MASK_STOP;
             if (rxBuffer.cmd == cmd) {
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] STOP byte correct | cmd =");
                 Serial.println(cmd);
 #endif
                 return true;
             } else {
 #ifdef BB_DEBUG
+                Serial.print("[S");
+                Serial.print(serialIdx);
+                Serial.print("]");
                 Serial.print("[BB] STOP byte incorrect | cmd =");
                 Serial.println(cmd);
 #endif
@@ -79,7 +127,12 @@ bool BroadcastSerial::receiveData(size_t len) {
             }
         }
     }
+
+#ifdef BB_DEBUG
     if (rxBuffer.cmd != 0) {
+        Serial.print("[S");
+        Serial.print(serialIdx);
+        Serial.print("]");
         Serial.print("[BB] Reading frame | cmd=");
         Serial.print(rxBuffer.cmd);
         Serial.print(", len=");
@@ -87,6 +140,7 @@ bool BroadcastSerial::receiveData(size_t len) {
         Serial.print(", crc=");
         Serial.println(rxBuffer.crc);
     }
+#endif
     return false;
 }
 
@@ -132,5 +186,5 @@ void BroadcastSerial::write(uint8_t data) {
 }
 
 void BroadcastSerial::flush() {
-    stream.flush();
+//    stream.flush();
 }

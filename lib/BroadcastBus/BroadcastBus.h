@@ -11,8 +11,8 @@ private:
     uint8_t txCmd = 0;
     Crc8 txCrc;
 public:
-    BroadcastSerial bSerial1 = BroadcastSerial(Serial1);
-    BroadcastSerial bSerial2 = BroadcastSerial(Serial3);
+    BroadcastSerial bSerial1 = BroadcastSerial(Serial1, 1);
+    BroadcastSerial bSerial2 = BroadcastSerial(Serial3, 2);
 
     void begin();
 

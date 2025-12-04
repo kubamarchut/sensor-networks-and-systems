@@ -132,18 +132,22 @@ void acquireData(){
 }
 
 void setup() {
+    pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
-  while(!Serial);
-  Serial.println("W1 uruchomiony");
+  while(!Serial) {
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(500);
+  }
   Wire.begin();
   bus.begin();
-  delay(1000);
+    Serial.println("W1 uruchomiony");
 }
 
 void loop() {
   switch (bus.bSerial1.receiveCmd()) {
     case BB_MASK_REQ:
-        Serial.println("odebrano dane");
         if (bus.bSerial1.receiveData(1)) {
           frame.seq = bus.bSerial1.rxBuffer.data[0];
           if (frame.seq != last_seq){
@@ -156,7 +160,6 @@ void loop() {
       }
       switch (bus.bSerial2.receiveCmd()) {
         case BB_MASK_REQ:
-        Serial.println("odebrano dane");
         if (bus.bSerial2.receiveData(1)) {
           frame.seq = bus.bSerial2.rxBuffer.data[0];
           if (frame.seq != last_seq){

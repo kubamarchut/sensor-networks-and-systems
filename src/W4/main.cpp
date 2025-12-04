@@ -45,7 +45,12 @@ void onI2CRequest() {
     if (frames_ptr < frames_length) {
         Serial.print("Wysyłanie ramki frames_ptr=");
         Serial.println(frames_ptr);
-        Wire.write((uint8_t*) (&frames[frames_ptr++]), sizeof(bb_sensor_frame));
+
+        Crc8 crc;
+        crc.calculate((uint8_t*) (&frames[frames_ptr]), sizeof(bb_sensor_frame));
+        Wire.write((uint8_t*) (&frames[frames_ptr]), sizeof(bb_sensor_frame));
+        Wire.write(crc.getCrc());
+        frames_ptr += 1;
     } else {
         Serial.print("Brak nowej ramki finished=");
         if ((uart1_finish && uart2_finish) || finish_stopwatch.isTimeout()) {
@@ -67,7 +72,12 @@ void bb_frame_finish() {
 void setup() {
     Serial.begin(115200);
     bus.begin();
-    while (!Serial);
+    while(!Serial) {
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(1000);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(500);
+    }
     Wire.begin(NODE_ID);
     Wire.onReceive(onI2CReceive);
     Wire.onRequest(onI2CRequest);
@@ -89,6 +99,7 @@ void loop() {
 //                uint8_t finishSeq = bus.bSerial1.rxBuffer.data[0];
 //                uint8_t sensorCount = bus.bSerial1.rxBuffer.data[1];
                 uart1_finish = true;
+                bus.bSerial1.reset();
             }
             break;
     }
@@ -105,6 +116,7 @@ void loop() {
 //                uint8_t finishSeq = bus.bSerial2.rxBuffer.data[0];
 //                uint8_t sensorCount = bus.bSerial2.rxBuffer.data[1];
                 uart2_finish = true;
+                bus.bSerial2.reset();
             }
             break;
     }
