@@ -17,7 +17,7 @@
 #define BB_ECHO_TIMEOUT (50) // ms
 #define BB_DELAY_MIN (500) //ms
 #define BB_DELAY_MAX (1000) //ms
-#define BB_DEBUG
+//#define BB_DEBUG
 
 typedef struct __attribute__((packed)) {
     uint8_t addr;
@@ -42,5 +42,6 @@ typedef struct __attribute__((packed)) {
 } bb_buffer;
 
 void bb_print_frame(bb_sensor_frame& frame);
+void bb_print_frame_compact(bb_sensor_frame& frame);
 
 #endif // BROADCAST_CONSTS
