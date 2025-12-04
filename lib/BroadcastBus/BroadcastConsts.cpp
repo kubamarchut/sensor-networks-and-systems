@@ -21,7 +21,7 @@ void bb_print_frame(bb_sensor_frame& frame) {
     }
 }
 
-void bb_print_frame_compact(const bb_sensor_frame& frame) {
+void bb_print_frame_compact(bb_sensor_frame& frame) {
     Serial.print("Node=0x");
     Serial.print(frame.node_addr, HEX);
 
@@ -31,8 +31,8 @@ void bb_print_frame_compact(const bb_sensor_frame& frame) {
     Serial.print(" Seq=");
     Serial.print(frame.seq);
 
-    Serial.print(" Flags=0b");
-    Serial.print(frame.flags, BIN);
+    //Serial.print(" Flags=0b");
+    //Serial.print(frame.flags, BIN);
 
     Serial.print(" Regs(");
     Serial.print(frame.regs_len);

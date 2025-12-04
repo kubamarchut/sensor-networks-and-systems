@@ -4,7 +4,7 @@
 #include <Stopwatch.h>
 #include <Wire.h>
 
-#define NODE_ID 0x04
+#define NODE_ID 0x03
 #define MAX_SENSORS 16
 
 #define I2C_STATUS_EMPTY    0x51

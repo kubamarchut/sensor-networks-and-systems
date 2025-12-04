@@ -14,9 +14,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki w komunikacji węzłów strefy 2 i 3">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki w odczytywaniu ramek w W0">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/BroadcastBus/BroadcastConsts.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W4/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W4/main.cpp" afterDir="false" />
     </list>
@@ -49,6 +49,9 @@
     &quot;accountId&quot;: &quot;09f9f1dd-858e-4bd2-bdd6-e56972a6616a&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-arduino-samd/cores/arduino/api/Stream.h" root0="SKIP_INSPECTION" />
+  </component>
   <component name="PlatformioLocalSettings">
     <option name="availableProjects">
       <map>
@@ -128,7 +131,7 @@
       <option name="presentableId" value="Default" />
       <updated>1764783007065</updated>
       <workItem from="1764783008722" duration="7046000" />
-      <workItem from="1764855182119" duration="8136000" />
+      <workItem from="1764855182119" duration="14899000" />
     </task>
     <task id="LOCAL-00001" summary="Integracja strefy 2 z strefą 3">
       <option name="closed" value="true" />
@@ -162,7 +165,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764861072715</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Poprawki w odczytywaniu ramek w W0">
+      <option name="closed" value="true" />
+      <created>1764863634268</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1764863634268</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,6 +184,7 @@
     <MESSAGE value="Poprawka funkcji bb_print_frame" />
     <MESSAGE value="Poprawki W0 i W4" />
     <MESSAGE value="Poprawki w komunikacji węzłów strefy 2 i 3" />
-    <option name="LAST_COMMIT_MESSAGE" value="Poprawki w komunikacji węzłów strefy 2 i 3" />
+    <MESSAGE value="Poprawki w odczytywaniu ramek w W0" />
+    <option name="LAST_COMMIT_MESSAGE" value="Poprawki w odczytywaniu ramek w W0" />
   </component>
 </project>
