@@ -2,11 +2,14 @@
 #include <Wire.h>
 #include "Crc8.h"
 #include <BroadcastBus.h>
+#include "morslib.h"
 
-#define NODE_ID 0x01            // ID tego węzła master
+#define NODE_ID 0x02            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
 #define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia
+
+morslib mymors(LED_BUILTIN, 200);
 
 int last_seq = -1;
 
@@ -132,26 +135,31 @@ void acquireData(){
 }
 
 void setup() {
+  mymors.begin();
     pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
-  while(!Serial) {
+  /*while(!Serial) {
       digitalWrite(LED_BUILTIN, HIGH);
       delay(1000);
       digitalWrite(LED_BUILTIN, LOW);
       delay(500);
-  }
+  }*/
   Wire.begin();
   bus.begin();
-    Serial.println("W1 uruchomiony");
+    Serial.println("W2 uruchomiony");
+  mymors.queue('s');
 }
 
 void loop() {
+  mymors.handle();
   switch (bus.bSerial1.receiveCmd()) {
     case BB_MASK_REQ:
         if (bus.bSerial1.receiveData(1)) {
           frame.seq = bus.bSerial1.rxBuffer.data[0];
           if (frame.seq != last_seq){
             acquireData();
+            mymors.queue('a');
+            mymors.queue('e');
             last_seq = frame.seq;
           }
           bus.bSerial1.reset();
@@ -164,6 +172,8 @@ void loop() {
           frame.seq = bus.bSerial2.rxBuffer.data[0];
           if (frame.seq != last_seq){
             acquireData();
+            mymors.queue('a');
+            mymors.queue('i');
             last_seq = frame.seq;
           }
           bus.bSerial2.reset();
