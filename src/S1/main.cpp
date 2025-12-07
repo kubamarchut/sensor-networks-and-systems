@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <TCS3200.h>
+#include "morslib.h"
 
 // adres I2C czujnika koloru
 // #define NODE_ADDR 0x10
@@ -18,7 +19,7 @@
 #define COMM_STATE_TIMEOUT 500
 
 #define DEBUG 1
-#define S0_PIN 6
+#define S0_PIN 4
 #define S1_PIN 7
 #define S2_PIN 8
 #define S3_PIN 9
@@ -26,6 +27,8 @@
 #define PIN_POWER 10
 
 TCS3200 tcs3200(S0_PIN, S1_PIN, S2_PIN, S3_PIN, OUT_PIN);
+
+morslib mymors(LED_BUILTIN, 200);
 
 // czas ostatniej zmiany
 unsigned long lastColorChangeTime = 0;
@@ -54,15 +57,18 @@ void onI2CRequest() {
     Wire.write(REG_G); Wire.write(greenVal);
     Wire.write(REG_B); Wire.write(blueVal);
 
+    mymors.queue('r');
+
     communicationState = 0;
   }
 }
 
 void setup() {
+  mymors.begin()
   Wire.begin(NODE_ADDR);
   Wire.onRequest(onI2CRequest);
   Serial.begin(9600);
-  while (!Serial);
+//  while (!Serial);
   Serial.print("S");
   Serial.print(NODE_ADDR);
   Serial.println(" (czujnik) uruchomiony");
@@ -105,10 +111,12 @@ void setup() {
   tcs3200.calibrate();
   Serial.println("Calibration complete");
   digitalWrite(PIN_POWER, LOW);
+    mymors.queue('s');
 }
 
 void loop() {
   tcs3200.loop();   // required for library operation
+    mymors.handle();
   if (millis() - lastColorChangeTime >= COLOR_UPDATE_FREQ){
     digitalWrite(PIN_POWER, HIGH);
     delay(100);
@@ -118,6 +126,7 @@ void loop() {
     redVal   = (uint8_t) constrain(rgb.red,   0, 255);
     greenVal = (uint8_t) constrain(rgb.green, 0, 255);
     blueVal  = (uint8_t) constrain(rgb.blue,  0, 255);
+    mymors.queue('p');
 
     // Debug to Serial
     if (DEBUG){
