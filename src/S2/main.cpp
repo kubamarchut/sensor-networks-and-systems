@@ -2,13 +2,13 @@
 #include <Wire.h>
 
 // adres I2C czujnika koloru
-#define SENSOR_ADDR 0x20
+//define NODE_ADDR 0x20
 
 // rejestry dla składowych RGB
 #define REG_CNT 3
-#define REG_R 0x21
-#define REG_G 0x22
-#define REG_B 0x23
+#define REG_R (NODE_ADDR + 0x01)
+#define REG_G (NODE_ADDR + 0x02)
+#define REG_B (NODE_ADDR + 0x03)
 
 // do symulacji - co ile ms zmiana
 #define COLOR_UPDATE_FREQ 1000
@@ -48,12 +48,12 @@ void onI2CRequest() {
 }
 
 void setup() {
-  Wire.begin(SENSOR_ADDR);
+  Wire.begin(NODE_ADDR);
   Wire.onRequest(onI2CRequest);
   Serial.begin(9600);
   while (!Serial);
   Serial.print("S");
-  Serial.print(SENSOR_ADDR);
+  Serial.print(NODE_ADDR);
   Serial.println(" (czujnik) uruchomiony");
 }
 
