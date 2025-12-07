@@ -64,7 +64,7 @@ void onI2CRequest() {
 }
 
 void setup() {
-  mymors.begin()
+  mymors.begin();
   Wire.begin(NODE_ADDR);
   Wire.onRequest(onI2CRequest);
   Serial.begin(9600);
