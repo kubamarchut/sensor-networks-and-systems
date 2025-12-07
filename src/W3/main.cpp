@@ -78,11 +78,14 @@ void bb_frame_finish() {
 void setup() {
     Serial.begin(115200);
     bus.begin();
+    int retries = 3;
     while(!Serial) {
         digitalWrite(LED_BUILTIN, HIGH);
         delay(1000);
         digitalWrite(LED_BUILTIN, LOW);
         delay(500);
+        retries--;
+        if (retries <= 0) break; 
     }
     Wire.begin(NODE_ADDR);
     Wire.onReceive(onI2CReceive);

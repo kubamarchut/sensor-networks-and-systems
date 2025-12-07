@@ -136,7 +136,7 @@ void acquireData(){
 
 void setup() {
   mymors.begin();
-    pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
   /*while(!Serial) {
       digitalWrite(LED_BUILTIN, HIGH);

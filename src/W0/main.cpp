@@ -184,18 +184,18 @@ void setup()
 {
   mymors.begin();
   Serial.begin(9600);
-    while(!Serial) {
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(1000);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(500);
-    }
-    Wire.begin();
-    Wire1.begin();
+  while(!Serial) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+  }
+  Wire.begin();
+  Wire1.begin();
   Serial.println("W0 uruchomiony...");
   mymors.queue('s');
-    pinPeripheral(WIRE1_SDA, PIO_SERCOM);
-    pinPeripheral(WIRE1_SCL, PIO_SERCOM);
+  pinPeripheral(WIRE1_SDA, PIO_SERCOM);
+  pinPeripheral(WIRE1_SCL, PIO_SERCOM);
 }
 
 void loop()
