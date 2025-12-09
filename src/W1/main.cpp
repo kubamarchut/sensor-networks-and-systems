@@ -4,7 +4,7 @@
 #include <BroadcastBus.h>
 #include "morslib.h"
 
-#define NODE_ID 0x02            // ID tego węzła master
+#define NODE_ADDR 0x02            // ID tego węzła master
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
 #define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia
@@ -17,7 +17,7 @@ BroadcastBus bus = BroadcastBus();
 Stopwatch seqStopwatch = Stopwatch();
 
 bb_sensor_frame frame = {
-    .node_addr = NODE_ID,
+    .node_addr = NODE_ADDR,
     .sensor_addr = 0,
     .seq = 1,
     .flags = 0b11010010,
@@ -136,7 +136,7 @@ void acquireData(){
 
 void setup() {
   mymors.begin();
-    pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
   /*while(!Serial) {
       digitalWrite(LED_BUILTIN, HIGH);
@@ -146,7 +146,9 @@ void setup() {
   }*/
   Wire.begin();
   bus.begin();
-    Serial.println("W2 uruchomiony");
+  Serial.print("W");
+  Serial.print(NODE_ADDR);
+  Serial.println(" uruchomiony");
   mymors.queue('s');
 }
 

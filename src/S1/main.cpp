@@ -4,16 +4,13 @@
 #include "morslib.h"
 
 // adres I2C czujnika koloru
-#define SENSOR_ADDR 0x10
+// #define NODE_ADDR 0x10
 
 // rejestry dla składowych RGB
 #define REG_CNT 3
-#define REG_R 0x11
-#define REG_G 0x12
-#define REG_B 0x13
-
-// do symulacji - co ile ms zmiana
-#define COLOR_UPDATE_FREQ 5000
+#define REG_R (NODE_ADDR + 0x01)
+#define REG_G (NODE_ADDR + 0x02)
+#define REG_B (NODE_ADDR + 0x03)
 
 // timeout obsluga protokolu I2C
 #define COMM_STATE_TIMEOUT 500
@@ -42,9 +39,34 @@ uint8_t blueVal = 0;
 volatile uint8_t communicationState = 0;
 unsigned long lastCommunicationStateChange = 0;
 
+void performMeasurments()
+{
+  digitalWrite(PIN_POWER, HIGH);
+    delay(100);
+
+    // Read sensor
+    RGBColor rgb = tcs3200.read_rgb_color();
+    redVal   = (uint8_t) constrain(rgb.red,   0, 255);
+    greenVal = (uint8_t) constrain(rgb.green, 0, 255);
+    blueVal  = (uint8_t) constrain(rgb.blue,  0, 255);
+    mymors.queue('p');
+
+    // Debug to Serial
+    if (DEBUG){
+      Serial.print("DEBUG | R: "); Serial.print(redVal);
+      Serial.print("  G: "); Serial.print(greenVal);
+      Serial.print("  B: "); Serial.println(blueVal);
+    }
+
+    digitalWrite(PIN_POWER, LOW);
+    lastColorChangeTime = millis();
+}
+
 // wysłanie danych po I2C – format: [liczba rejestrów] lub n * ([klucz][wartość])
 void onI2CRequest() {
   uint8_t registers = REG_CNT;
+
+  performMeasurments();
 
   if (communicationState == 0){
     Wire.write(registers);
@@ -64,13 +86,13 @@ void onI2CRequest() {
 }
 
 void setup() {
-    mymors.begin();
-  Wire.begin(SENSOR_ADDR);
+  mymors.begin();
+  Wire.begin(NODE_ADDR);
   Wire.onRequest(onI2CRequest);
   Serial.begin(9600);
 //  while (!Serial);
   Serial.print("S");
-  Serial.print(SENSOR_ADDR);
+  Serial.print(NODE_ADDR);
   Serial.println(" (czujnik) uruchomiony");
   //Serial.println("kalibracja");
 
@@ -117,27 +139,6 @@ void setup() {
 void loop() {
   tcs3200.loop();   // required for library operation
     mymors.handle();
-  if (millis() - lastColorChangeTime >= COLOR_UPDATE_FREQ){
-    digitalWrite(PIN_POWER, HIGH);
-    delay(100);
-
-    // Read sensor
-    RGBColor rgb = tcs3200.read_rgb_color();
-    redVal   = (uint8_t) constrain(rgb.red,   0, 255);
-    greenVal = (uint8_t) constrain(rgb.green, 0, 255);
-    blueVal  = (uint8_t) constrain(rgb.blue,  0, 255);
-    mymors.queue('p');
-
-    // Debug to Serial
-    if (DEBUG){
-      Serial.print("DEBUG | R: "); Serial.print(redVal);
-      Serial.print("  G: "); Serial.print(greenVal);
-      Serial.print("  B: "); Serial.println(blueVal);
-    }
-
-    digitalWrite(PIN_POWER, LOW);
-    lastColorChangeTime = millis();
-  }
 
   if (communicationState == 1){
     if (millis() - lastCommunicationStateChange >= COMM_STATE_TIMEOUT){
