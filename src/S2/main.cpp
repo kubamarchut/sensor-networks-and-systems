@@ -6,6 +6,7 @@ morslib mymors(LED_BUILTIN, 200);
 
 // adres I2C czujnika koloru
 //define NODE_ADDR 0x20
+#define DEBUG 1
 
 // rejestry dla składowych RGB
 #define REG_CNT 3
@@ -33,6 +34,12 @@ void performMeasurments()
     redVal   = random(0, 255);
     greenVal = random(0, 255);
     blueVal  = random(0, 255);
+    if(DEBUG)
+    {
+      Serial.print("DEBUG | R: "); Serial.print(redVal);
+      Serial.print("  G: "); Serial.print(greenVal);
+      Serial.print("  B: "); Serial.println(blueVal);
+    }
 
     lastColorChangeTime = millis();
     mymors.queue('p');
