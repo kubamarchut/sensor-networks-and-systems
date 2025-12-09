@@ -24,6 +24,12 @@ TwoWire *Wires[2] = {&Wire, &Wire1};
 
 morslib mymors(LED_BUILTIN, 200);
 
+typedef struct __attribute__((packed)) {
+    uint8_t node_count;
+    uint8_t node_addr[MAX_ZONE_2_NODES];
+    bb_sensor_frame sensor;
+} bb_node_frame;
+
 bb_sensor_frame frames[MAX_REGS];
 size_t frames_length;
 bool printed_frames = false;
@@ -99,12 +105,6 @@ void requestData(uint8_t i) {
     uint8_t addr = nodes[i].address;
     TwoWire *wire = Wires[nodes[i].wireIdx];
     wire->requestFrom(addr, sizeof(bb_sensor_frame) + 2);
-#ifdef I2C_DEBUG
-    Serial.print("[");
-    Serial.print(i);
-    Serial.print("]");
-    Serial.println("[I2C] Received frame");
-#endif
     bb_sensor_frame frame_buffer;
 
     uint8_t first_byte = wire->read();
@@ -125,6 +125,17 @@ void requestData(uint8_t i) {
         Serial.print("]");
         Serial.println("[I2C] Data finished");
 #endif
+        bool allFinished = true;
+        for (size_t n = 0; n < nodeCount; n++) {
+            if (!nodes[n].finished) {
+                allFinished = false;
+                break;
+            }
+        }
+
+        if (allFinished)
+            print_frames();
+
         return;
     } else if (first_byte == I2C_STATUS_DATA) {
 #ifdef I2C_DEBUG
@@ -171,6 +182,13 @@ void requestData(uint8_t i) {
         Serial.print(i);
         Serial.print("]");
         Serial.println("[I2C] Saved frame");
+#endif
+    } else {
+#ifdef I2C_DEBUG
+    Serial.print("[");
+    Serial.print(i);
+    Serial.print("]");
+    Serial.println("[I2C] Received unknown frame");
 #endif
     }
 

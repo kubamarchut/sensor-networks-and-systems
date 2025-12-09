@@ -4,7 +4,10 @@
 #include <BroadcastBus.h>
 #include "morslib.h"
 
+#ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
+#endif
+
 #define DATA_PULL_FREQ 2000     // Częstotliwość odczytu (ms)
 #define MAX_SENSORS   8         // Maks. liczba urządzeń I2C
 #define MAX_DATA_SIZE 8         // Maks. liczba rejestów z jednego urządzenia

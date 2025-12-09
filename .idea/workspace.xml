@@ -14,9 +14,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawki">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawa połączenia I2C w strefie 3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/platformio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/platformio.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W3/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W3/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -131,7 +134,7 @@
       <updated>1764783007065</updated>
       <workItem from="1764783008722" duration="7046000" />
       <workItem from="1764855182119" duration="15219000" />
-      <workItem from="1765285376920" duration="1081000" />
+      <workItem from="1765285376920" duration="5198000" />
     </task>
     <task id="LOCAL-00001" summary="Integracja strefy 2 z strefą 3">
       <option name="closed" value="true" />
@@ -181,7 +184,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764872316395</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Poprawa połączenia I2C w strefie 3">
+      <option name="closed" value="true" />
+      <created>1765286847768</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1765286847768</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -205,6 +216,7 @@
     <MESSAGE value="Poprawki w komunikacji węzłów strefy 2 i 3" />
     <MESSAGE value="Poprawki w odczytywaniu ramek w W0" />
     <MESSAGE value="Poprawki" />
-    <option name="LAST_COMMIT_MESSAGE" value="Poprawki" />
+    <MESSAGE value="Poprawa połączenia I2C w strefie 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="Poprawa połączenia I2C w strefie 3" />
   </component>
 </project>

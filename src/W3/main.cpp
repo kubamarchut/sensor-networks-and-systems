@@ -4,7 +4,10 @@
 #include <Stopwatch.h>
 #include <Wire.h>
 
+#ifndef NODE_ADDR
 #define NODE_ADDR 0x03
+#endif
+
 #define MAX_SENSORS 16
 
 #define I2C_STATUS_EMPTY    0x51
@@ -17,7 +20,7 @@ bb_sensor_frame frames[MAX_SENSORS];
 size_t frames_length = 0;
 size_t frames_ptr = 0;
 
-Stopwatch finish_stopwatch = Stopwatch(10000);
+Stopwatch finish_stopwatch = Stopwatch(5000);
 bool uart1_finish = false, uart2_finish = false;
 
 uint8_t seq = 0;
