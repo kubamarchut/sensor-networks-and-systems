@@ -13,7 +13,7 @@
 #define I2C_STATUS_EMPTY    0x51
 #define I2C_STATUS_DATA     0x62
 #define I2C_STATUS_FINISHED 0x73
-#define I2C_DEBUG 1
+//#define I2C_DEBUG 1
 
 #define WIRE1_SDA 0
 #define WIRE1_SCL 1
@@ -26,11 +26,11 @@ morslib mymors(LED_BUILTIN, 200);
 
 typedef struct __attribute__((packed)) {
     uint8_t node_count;
-    uint8_t node_addr[MAX_ZONE_2_NODES];
+    uint8_t node_addresses[MAX_ZONE_2_NODES];
     bb_sensor_frame sensor;
 } bb_node_frame;
 
-bb_sensor_frame frames[MAX_REGS];
+bb_node_frame frames[MAX_REGS];
 size_t frames_length;
 bool printed_frames = false;
 Stopwatch request_stopwatch = Stopwatch(DATA_PULL_FREQ);
@@ -50,7 +50,13 @@ void print_frames() {
         return;
 
     for (size_t i = 0; i < frames_length; i++) {
-        bb_print_frame_compact(frames[i]);
+        Serial.print("Node2=");
+        for (size_t n = 0; n < frames[i].node_count; n++) {
+            Serial.print("0x");
+            Serial.print(frames[i].node_addresses[n], HEX);
+            Serial.print(" ");
+        }
+        bb_print_frame_compact(frames[i].sensor);
     }
     printed_frames = true;
     frames_length = 0;
@@ -169,13 +175,15 @@ void requestData(uint8_t i) {
 
         int frame_idx = frames_length;
         for (size_t index = 0; index < frames_length; index++) {
-            if (frames[index].sensor_addr == frame_buffer.sensor_addr) {
+            if (frames[index].sensor.sensor_addr == frame_buffer.sensor_addr) {
                 frame_idx = index;
                 break;
             }
         }
+        frames[frame_idx].node_addresses[frames[frame_idx].node_count] = nodes[i].address;
+        frames[frame_idx].node_count++;
 
-        memcpy(&frames[frame_idx], &frame_buffer, sizeof(bb_sensor_frame));
+        memcpy(&(frames[frame_idx].sensor), &frame_buffer, sizeof(bb_sensor_frame));
         frames_length = max(min(frame_idx + 1, MAX_REGS), frames_length);
 #ifdef I2C_DEBUG
         Serial.print("[");
@@ -227,6 +235,7 @@ void loop() {
     }
 
     if (request_stopwatch.isTimeout()) {
+        memset(frames, 0, MAX_REGS * sizeof(bb_node_frame));
         print_frames();
         discoverI2CDevices();
         printed_frames = false;
