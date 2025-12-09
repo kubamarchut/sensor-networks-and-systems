@@ -11,9 +11,6 @@
 #define REG_R (NODE_ADDR + 0x01)
 #define REG_G (NODE_ADDR + 0x02)
 
-// do symulacji - co ile ms zmiana
-#define DATA_UPDATE_FREQ 2000
-
 // timeout obsluga protokolu I2C
 #define COMM_STATE_TIMEOUT 500
 
@@ -30,9 +27,24 @@ uint8_t humVal = 0;
 volatile uint8_t communicationState = 0;
 unsigned long lastCommunicationStateChange = 0;
 
+void performMeasurments()
+{
+   tempVal = random(5, 35);
+    humVal  = random(40, 80);
+    mymors.queue('p');
+    if (DEBUG){
+      Serial.print("DEBUG | TEMP: "); Serial.print(tempVal);
+      Serial.print(" HUM: "); Serial.println(humVal);
+    }
+
+    lastDataChangeTime = millis();
+}
+
 // wysłanie danych po I2C – format: [liczba rejestrów] lub n * ([klucz][wartość])
 void onI2CRequest() {
   uint8_t registers = REG_CNT;
+
+  performMeasurments();
 
   if (communicationState == 0){
     Wire.write(registers);
@@ -63,17 +75,6 @@ void setup() {
 
 void loop() {
   mymors.handle();
-  if (millis() - lastDataChangeTime >= DATA_UPDATE_FREQ){
-    tempVal = random(5, 35);
-    humVal  = random(40, 80);
-    mymors.queue('p');
-    if (DEBUG){
-      Serial.print("DEBUG | TEMP: "); Serial.print(tempVal);
-      Serial.print(" HUM: "); Serial.println(humVal);
-    }
-
-    lastDataChangeTime = millis();
-  }
 
   if (communicationState == 1){
     if (millis() - lastCommunicationStateChange >= COMM_STATE_TIMEOUT){
