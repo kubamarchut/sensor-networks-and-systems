@@ -73,6 +73,7 @@ void setup() {
   //while (!Serial);
   Serial.print("S");
   Serial.print(NODE_ADDR);
+  randomSeed(analogRead(A0));
   mymors.begin();
   mymors.queue('s');
   Serial.println(" (czujnik) uruchomiony");

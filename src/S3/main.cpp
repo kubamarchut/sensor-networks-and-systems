@@ -65,6 +65,7 @@ void setup() {
   mymors.begin();
   Wire.begin(NODE_ADDR);
   Wire.onRequest(onI2CRequest);
+  randomSeed(analogRead(A0));
   Serial.begin(9600);
   //while (!Serial);
   Serial.print("S");
