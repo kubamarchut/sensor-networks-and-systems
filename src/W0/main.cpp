@@ -17,8 +17,10 @@
 
 #define WIRE1_SDA 0
 #define WIRE1_SCL 1
+#define WIRES_LEN 2
 
 TwoWire Wire1(&sercom3, WIRE1_SDA, WIRE1_SCL);
+TwoWire *Wires[2] = {&Wire, &Wire1};
 
 morslib mymors(LED_BUILTIN, 200);
 
@@ -28,8 +30,8 @@ bool printed_frames = false;
 Stopwatch request_stopwatch = Stopwatch(DATA_PULL_FREQ);
 Stopwatch data_stopwatch = Stopwatch(500);
 
-struct nodeInfo
-{
+struct nodeInfo {
+    size_t wireIdx;
     uint8_t address;
     bool finished;
 };
@@ -48,57 +50,55 @@ void print_frames() {
     frames_length = 0;
 }
 
-void addNode(uint8_t addr)
-{
-  if (nodeCount < MAX_ZONE_2_NODES)
-  {
-  Serial.print("Znaleziono węzeł (seq=");
-  Serial.print(seq);
-  Serial.print(") dla adresu ");
-      Serial.print("0x");
-      Serial.println(addr, HEX);
-    nodes[nodeCount].address = addr;
-    nodes[nodeCount].finished = false;
-    nodeCount++;
-  } else {
-    Serial.println("Brak miejsca na kolejne czujniki!");
-  }
+void addNode(size_t wireIdx, uint8_t addr) {
+    if (nodeCount < MAX_ZONE_2_NODES) {
+        Serial.print("Znaleziono węzeł (seq=");
+        Serial.print(seq);
+        Serial.print(") dla adresu ");
+        Serial.print("0x");
+        Serial.println(addr, HEX);
+        nodes[nodeCount].wireIdx = wireIdx;
+        nodes[nodeCount].address = addr;
+        nodes[nodeCount].finished = false;
+        nodeCount++;
+    } else {
+        Serial.println("Brak miejsca na kolejne czujniki!");
+    }
 }
 
 // Faza wykrywania urządzeń I2C
-void discoverI2CDevices(TwoWire& wire)
-{
-  Serial.println("Skanowanie magistrali I2C...");
-  nodeCount = 0;
+void discoverI2CDevices() {
+    Serial.println("Skanowanie magistrali I2C...");
+    nodeCount = 0;
     seq++;
 
-  for (uint8_t addr = 1; addr < 127; addr++)
-  {
-    // mymors.handle();
-    if (addr == 0x60 || addr == 0x6B)
-      continue;
-//    Serial.print("\tszukanie dla adresu = 0x");
-//    Serial.println(addr, HEX);
-    wire.beginTransmission(addr);
-    wire.write('A');
-    wire.write(seq);
-    uint8_t error = wire.endTransmission();
+    for (size_t wireIdx = 0; wireIdx < WIRES_LEN; wireIdx++) {
+        TwoWire *wire = Wires[wireIdx];
+        for (uint8_t addr = 1; addr < 127; addr++) {
+            if (addr == 0x60 || addr == 0x6B)
+                continue;
 
-    if (error == 0)
-    {
-      addNode(addr);
+            wire->beginTransmission(addr);
+            wire->write('A');
+            wire->write(seq);
+            uint8_t error = wire->endTransmission();
+
+            if (error == 0) {
+                addNode(wireIdx, addr);
+            }
+        }
     }
-  }
 
-  Serial.print("Znaleziono ");
-  Serial.print(nodeCount);
-  Serial.println(" węzłów sąsiednich");
+    Serial.print("Znaleziono ");
+    Serial.print(nodeCount);
+    Serial.println(" węzłów sąsiednich");
 }
 
-void requestData(TwoWire& wire, uint8_t i) {
+void requestData(uint8_t i) {
     Crc8 crc;
     uint8_t addr = nodes[i].address;
-    wire.requestFrom(addr, sizeof(bb_sensor_frame)+2);
+    TwoWire *wire = Wires[nodes[i].wireIdx];
+    wire->requestFrom(addr, sizeof(bb_sensor_frame) + 2);
 #ifdef I2C_DEBUG
     Serial.print("[");
     Serial.print(i);
@@ -107,7 +107,7 @@ void requestData(TwoWire& wire, uint8_t i) {
 #endif
     bb_sensor_frame frame_buffer;
 
-    uint8_t first_byte = wire.read();
+    uint8_t first_byte = wire->read();
 
     if (first_byte == I2C_STATUS_EMPTY) {
 #ifdef I2C_DEBUG
@@ -117,8 +117,7 @@ void requestData(TwoWire& wire, uint8_t i) {
         Serial.println("[I2C] No data available");
 #endif
         return;
-    }
-    else if (first_byte == I2C_STATUS_FINISHED) {
+    } else if (first_byte == I2C_STATUS_FINISHED) {
         nodes[i].finished = 1;
 #ifdef I2C_DEBUG
         Serial.print("[");
@@ -134,7 +133,7 @@ void requestData(TwoWire& wire, uint8_t i) {
         Serial.print("]");
         Serial.println("[I2C] Found frame");
 #endif
-        wire.readBytes((uint8_t*) &frame_buffer, sizeof(bb_sensor_frame));
+        wire->readBytes((uint8_t *) &frame_buffer, sizeof(bb_sensor_frame));
         if (seq != frame_buffer.seq) {
 #ifdef I2C_DEBUG
             Serial.print("[");
@@ -145,8 +144,8 @@ void requestData(TwoWire& wire, uint8_t i) {
             return;
         }
 
-        crc.calculate((uint8_t*) &frame_buffer, sizeof(bb_sensor_frame));
-        int readCrc = wire.read();
+        crc.calculate((uint8_t *) &frame_buffer, sizeof(bb_sensor_frame));
+        int readCrc = wire->read();
         if (crc.getCrc() != readCrc) {
 #ifdef I2C_DEBUG
             Serial.print("[");
@@ -158,7 +157,7 @@ void requestData(TwoWire& wire, uint8_t i) {
         }
 
         int frame_idx = frames_length;
-        for (int index = 0; index < frames_length; index++) {
+        for (size_t index = 0; index < frames_length; index++) {
             if (frames[index].sensor_addr == frame_buffer.sensor_addr) {
                 frame_idx = index;
                 break;
@@ -176,15 +175,14 @@ void requestData(TwoWire& wire, uint8_t i) {
     }
 
     // Czyszczenie nadmiarowych bajtów
-    while (wire.available())
-        wire.read();
+    while (wire->available())
+        wire->read();
 }
 
-void setup()
-{
-  mymors.begin();
-  Serial.begin(9600);
-    while(!Serial) {
+void setup() {
+    mymors.begin();
+    Serial.begin(9600);
+    while (!Serial) {
         digitalWrite(LED_BUILTIN, HIGH);
         delay(1000);
         digitalWrite(LED_BUILTIN, LOW);
@@ -192,33 +190,29 @@ void setup()
     }
     Wire.begin();
     Wire1.begin();
-  Serial.println("W0 uruchomiony...");
-  mymors.queue('s');
+    Serial.println("W0 uruchomiony...");
+    mymors.queue('s');
     pinPeripheral(WIRE1_SDA, PIO_SERCOM);
     pinPeripheral(WIRE1_SCL, PIO_SERCOM);
 }
 
-void loop()
-{
-  mymors.handle();
+void loop() {
+    mymors.handle();
 
-  if (data_stopwatch.isTimeout()) {
-      for (int i = 0; i < nodeCount; i++) {
-          if (!nodes[i].finished) {
-              requestData(Wire, i);
-              requestData(Wire1, i);
+    if (data_stopwatch.isTimeout()) {
+        for (int i = 0; i < nodeCount; i++) {
+            if (!nodes[i].finished) {
+                requestData(i);
+            }
+        }
+        data_stopwatch.reset();
+    }
 
-          }
-      }
-      data_stopwatch.reset();
-  }
-
-  if (request_stopwatch.isTimeout()) {
-    print_frames();
-    discoverI2CDevices(Wire);
-      discoverI2CDevices(Wire1);
-    printed_frames = false;
-    mymors.queue('n', 1);
-    request_stopwatch.reset();
-  }
+    if (request_stopwatch.isTimeout()) {
+        print_frames();
+        discoverI2CDevices();
+        printed_frames = false;
+        mymors.queue('n', 1);
+        request_stopwatch.reset();
+    }
 }
