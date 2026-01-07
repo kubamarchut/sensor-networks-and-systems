@@ -1,20 +1,15 @@
 #include <Arduino.h>
 #include "Crc8.h"
 #include "morslib.h"
-#include <SPI.h>
-#include <LoRa.h>
+#include "WirelessCommunication.h"
+
+WirelessCommunication radio;
 
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
 #endif
 
 #define DEST_ADDR 0x02            // Roboczo do usunięcia przez MJ
-
-struct PingPacket {
-  uint8_t from;
-  uint8_t to;
-  uint8_t type;
-};
 
 unsigned long lastPing = 0;
 
@@ -34,60 +29,45 @@ void setup() {
   Serial.print(NODE_ADDR);
   Serial.println(" uruchomiony");
   
-  if(!LoRa.begin(8681E5)) {
-    Serial.println("LoRa init - niepowodzenie");
-  }
-  Serial.println("LoRa init - udane");
+  if (!radio.begin()) {
+        Serial.println("Inicjalizacja radio nieudana");
+        while (1);
+    }
+
+    Serial.println("Inicjalizacja radio udana");
   
   mymors.queue('s');
-}
-
-void sendPing() {
-  PingPacket pkt = { NODE_ADDR, DEST_ADDR, 1 };
-  Serial.println("PING sending");
-  
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-  
-  Serial.println("PING sent");
-}
-
-void sendPong(uint8_t dest) {
-  PingPacket pkt = { NODE_ADDR, dest, 2 };
-  Serial.println("PONG sending");
-
-  LoRa.beginPacket();
-  LoRa.write((uint8_t*)&pkt, sizeof(pkt));
-  LoRa.endPacket();
-
-  Serial.println("PONG sent");
 }
 
 void loop() {
   mymors.handle();
   
-  if (millis() - lastPing > 2000) {
+  if (millis() - lastPing > 30000) {
     lastPing = millis();
-    sendPing();
+    Serial.println("[>] Sending ping");
+    radio.sendPing(NODE_ADDR, DEST_ADDR);
   }
 
   // ---- RECEIVE ----
-  int packetSize = LoRa.parsePacket();
-  if (packetSize == sizeof(PingPacket)) {
-    PingPacket pkt;
-    LoRa.readBytes((uint8_t*)&pkt, sizeof(pkt));
+  WirelessPacket rx;
+  if (radio.receive(rx)) {
+    if (rx.to == NODE_ADDR) {
+      Serial.print("[<] Packet from W");
+      Serial.println(rx.from);
 
-    if (pkt.to != NODE_ADDR) return;
-
-    if (pkt.type == 1) {
-      Serial.print("PING received from ");
-      Serial.println(pkt.from);
-      sendPong(pkt.from);
+      if (rx.type == 1) {
+        Serial.print("\tPING received from ");
+        Serial.println(rx.from);
+        Serial.println("[>] Sending pong");
+        radio.sendPong(NODE_ADDR, rx.from);
+      }
+      else if (rx.type == 2) {
+        Serial.print("\tPONG received from ");
+        Serial.println(rx.from);
+      }
     }
-    else if (pkt.type == 2) {
-      Serial.print("PONG received from ");
-      Serial.println(pkt.from);
+    else {
+      Serial.println("[<] Received msg not addressed for this node");
     }
   }
 
