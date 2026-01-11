@@ -2,16 +2,27 @@
 #include "Crc8.h"
 #include "morslib.h"
 #include "WirelessCommunication.h"
+#include "SAMDTimerInterrupt.h"
 
+SAMDTimer ITimer(TIMER_TC3);
 WirelessCommunication radio;
+
+void slotISR() {
+    radio.onSlotStartISR();
+}
+
+void guardISR() {
+    radio.onGuardEndISR();
+}
+
+void setupTimers() {
+    ITimer.attachInterruptInterval(1000 * 1000, slotISR);
+}
+
 
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
 #endif
-
-#define DEST_ADDR 0x02            // Roboczo do usunięcia przez MJ
-
-unsigned long lastPing = 0;
 
 morslib mymors(LED_BUILTIN, 200);
 
@@ -29,7 +40,7 @@ void setup() {
   Serial.print(NODE_ADDR);
   Serial.println(" uruchomiony");
   
-  if (!radio.begin()) {
+  if (!radio.begin(NODE_ADDR, ROLE_RELAY)) {
         Serial.println("Inicjalizacja radio nieudana");
         while (1);
     }
@@ -41,35 +52,8 @@ void setup() {
 
 void loop() {
   mymors.handle();
-  
-  if (millis() - lastPing > 30000) {
-    lastPing = millis();
-    Serial.println("[>] Sending ping");
-    radio.sendPing(NODE_ADDR, DEST_ADDR);
-  }
 
-  // ---- RECEIVE ----
-  WirelessPacket rx;
-  if (radio.receive(rx)) {
-    if (rx.to == NODE_ADDR) {
-      Serial.print("[<] Packet from W");
-      Serial.println(rx.from);
-
-      if (rx.type == 1) {
-        Serial.print("\tPING received from ");
-        Serial.println(rx.from);
-        Serial.println("[>] Sending pong");
-        radio.sendPong(NODE_ADDR, rx.from);
-      }
-      else if (rx.type == 2) {
-        Serial.print("\tPONG received from ");
-        Serial.println(rx.from);
-      }
-    }
-    else {
-      Serial.println("[<] Received msg not addressed for this node");
-    }
-  }
-
-  //delay(10);
+  radio.poll();
+  WirelessPacket pkt;
+  radio.receive(pkt);
 }
