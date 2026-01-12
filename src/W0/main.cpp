@@ -5,13 +5,14 @@
 
 WirelessCommunication radio;
 
+void guardISR() {
+  radio.onGuardEndISR();
+}
+
 void TC5_Handler() {
   TC5->COUNT16.INTFLAG.bit.MC0 = 1;
   radio.onSlotStartISR();
-}
-
-void guardISR() {
-    radio.onGuardEndISR();
+  radio.onGuardEndISR();
 }
 
 void setupTimers(Tc* tc, uint32_t ms) {

@@ -1,9 +1,9 @@
 
 #include <Arduino.h>
 
-#define MAX_NODES       8
-#define TX_QUEUE_SIZE   4
-#define LORA_DEBUG      1
+#define MAX_NODES       8       
+#define TX_QUEUE_SIZE   8       
+#define LORA_FREQ       868E6
 
 #ifdef LORA_DEBUG
   #define DBG(x)    Serial.print(x)
@@ -30,7 +30,7 @@ enum PacketType : uint8_t {
 };
 
 struct WirelessPacket {
-    uint8_t trace[8];
+    uint8_t trace[MAX_NODES];
     uint8_t to;
     uint8_t type;
     uint8_t seq;
@@ -38,45 +38,55 @@ struct WirelessPacket {
     uint8_t length;
 };
 
+struct PacketQueue {
+    WirelessPacket buffer[TX_QUEUE_SIZE];
+    uint8_t head = 0;
+    uint8_t tail = 0;
+    uint8_t count = 0;
+};
+
 class WirelessCommunication {
 public:
-    bool begin(uint8_t nodeAddr, NodeRole role);
-
-    void onSlotStartISR();
-    void onGuardEndISR();
+    bool begin(uint8_t nodeAddr, NodeRole role, uint32_t slotTimeMs);
 
     void poll();
 
-    bool send(const WirelessPacket& pkt);
-    bool receive(WirelessPacket& pkt);
+    bool send(uint8_t toAddr, const WirelessPacket& pkt);
+    bool hasReceived(WirelessPacket& pkt);
 
 private:
     uint8_t _nodeAddr;
     NodeRole _role;
+    uint32_t _slotDurationMs;
+    uint32_t _tickDurationMs;
 
-    volatile bool _slotFlag = false;
-    volatile bool _txAllowed = false;
-    volatile uint8_t _slotIndex = 0;
+    unsigned long _anchorTime;      // The theoretic start of the whole cycle
+    uint8_t _currentSlot;           // 0 to MAX_NODES-1
+    uint8_t _currentTick;           // 0 to 4
 
-    uint8_t _lastSeq[MAX_NODES] = {0};
-    uint8_t _localSeq = 0;
+    // Logic State
+    bool _txAllowed;                // Can we TX right now?
+    bool _slotHandled;              // Have we already acted in this slot?
+    
+    // LoRa/Data State
+    PacketQueue _txQueue;
+    PacketQueue _rxQueue;           // Small buffer for received packets
+    uint8_t _lastSeq[MAX_NODES];    // For duplicate detection
 
-    struct {
-        WirelessPacket buffer[TX_QUEUE_SIZE];
-        volatile uint8_t head = 0;
-        volatile uint8_t tail = 0;
-        volatile uint8_t count = 0;
-    } _txQueue;
-
-    bool queuePush(const WirelessPacket& pkt);
-    bool queuePop(WirelessPacket& pkt);
-
-    bool sendPacket(const WirelessPacket& pkt);
-    bool alreadySeen(const WirelessPacket& pkt) const;
-    bool appendTrace(WirelessPacket& pkt);
-    bool isDuplicate(const WirelessPacket& pkt);
-
+     // Internal Functions
+    void updateTimeSlot();
+    bool sendPacket(WirelessPacket& pkt);
+    void receiveLoRa();
     void handleIncoming(WirelessPacket& pkt);
+    void syncNetwork(uint8_t senderAddr);
+    
+    // Queue Helpers
+    bool qPush(PacketQueue& q, const WirelessPacket& pkt);
+    bool qPop(PacketQueue& q, WirelessPacket& pkt);
+    
+    // Trace/Dup Helpers
+    bool isDuplicate(const WirelessPacket& pkt);
+    void updateTrace(WirelessPacket& pkt);
 
 #ifdef LORA_DEBUG
     void dumpPacket(const WirelessPacket& pkt) const;
