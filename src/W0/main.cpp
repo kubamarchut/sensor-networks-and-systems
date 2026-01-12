@@ -7,7 +7,6 @@ WirelessCommunication radio;
 
 void TC5_Handler() {
   TC5->COUNT16.INTFLAG.bit.MC0 = 1;
-  Serial.println("sth sth");
   radio.onSlotStartISR();
 }
 
