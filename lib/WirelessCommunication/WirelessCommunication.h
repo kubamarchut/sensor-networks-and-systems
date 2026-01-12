@@ -1,5 +1,5 @@
-
 #include <Arduino.h>
+#include "LoRa.h"
 
 #define MAX_NODES       8       
 #define TX_QUEUE_SIZE   8       
@@ -23,10 +23,9 @@ enum NodeRole : uint8_t {
 
 enum PacketType : uint8_t {
     PKT_TIME_SYNC = 1,
-    PKT_PING      = 2,
-    PKT_PONG      = 3,
-    PKT_MEASURE   = 4,
-    PKT_STATUS    = 5
+    PKT_DATA      = 2, // Poprawiono nazewnictwo zg z impl
+    PKT_PING      = 3, // Opcjonalne
+    PKT_PONG      = 4  // Opcjonalne
 };
 
 struct WirelessPacket {
@@ -48,45 +47,29 @@ struct PacketQueue {
 class WirelessCommunication {
 public:
     bool begin(uint8_t nodeAddr, NodeRole role, uint32_t slotTimeMs);
-
     void poll();
-
-    bool send(uint8_t toAddr, const WirelessPacket& pkt);
+    bool send(const WirelessPacket& pkt);
     bool hasReceived(WirelessPacket& pkt);
 
 private:
     uint8_t _nodeAddr;
     NodeRole _role;
     uint32_t _slotDurationMs;
-    uint32_t _tickDurationMs;
 
-    unsigned long _anchorTime;      // The theoretic start of the whole cycle
-    uint8_t _currentSlot;           // 0 to MAX_NODES-1
-    uint8_t _currentTick;           // 0 to 4
+    unsigned long _anchorTime;
+    unsigned long _lastTxSlotAbs;   // Zamiast flag bool - absolutny numer obsłużonego slotu
 
-    // Logic State
-    bool _txAllowed;                // Can we TX right now?
-    bool _slotHandled;              // Have we already acted in this slot?
-    
-    // LoRa/Data State
     PacketQueue _txQueue;
-    PacketQueue _rxQueue;           // Small buffer for received packets
-    uint8_t _lastSeq[MAX_NODES];    // For duplicate detection
+    PacketQueue _rxQueue;
+    uint8_t _lastSeq[MAX_NODES];
 
-     // Internal Functions
-    void updateTimeSlot();
     bool sendPacket(WirelessPacket& pkt);
     void receiveLoRa();
     void handleIncoming(WirelessPacket& pkt);
     void syncNetwork(uint8_t senderAddr);
-    
-    // Queue Helpers
+
     bool qPush(PacketQueue& q, const WirelessPacket& pkt);
     bool qPop(PacketQueue& q, WirelessPacket& pkt);
-    
-    // Trace/Dup Helpers
-    bool isDuplicate(const WirelessPacket& pkt);
-    void updateTrace(WirelessPacket& pkt);
 
 #ifdef LORA_DEBUG
     void dumpPacket(const WirelessPacket& pkt) const;
