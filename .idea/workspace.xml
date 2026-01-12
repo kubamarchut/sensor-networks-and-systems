@@ -14,11 +14,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Poprawa stabilności W0">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Improved WirelessCommunication lib">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +29,14 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="W0" />
+  <component name="EmbeddedSvdWindowState">
+    <option name="loadedFiles">
+      <list>
+        <option value="C:\Users\deyanix\.platformio\platforms\atmelsam\misc\svd\ATSAMD21G18A.svd" />
+      </list>
+    </option>
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="W1" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -199,7 +207,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765295348862</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Improved WirelessCommunication lib">
+      <option name="closed" value="true" />
+      <created>1768218362330</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1768218362330</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -225,6 +241,7 @@
     <MESSAGE value="Poprawki" />
     <MESSAGE value="Poprawa połączenia I2C w strefie 3" />
     <MESSAGE value="Poprawa stabilności W0" />
-    <option name="LAST_COMMIT_MESSAGE" value="Poprawa stabilności W0" />
+    <MESSAGE value="Improved WirelessCommunication lib" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved WirelessCommunication lib" />
   </component>
 </project>

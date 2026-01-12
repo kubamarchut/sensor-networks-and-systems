@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include "Crc8.h"
 #include "morslib.h"
@@ -7,7 +8,6 @@ WirelessCommunication radio;
 
 static uint32_t lastSync = 0;
 
-#define LORA_DEBUG
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
 #endif
@@ -28,7 +28,7 @@ void setup() {
   Serial.print(NODE_ADDR - 1);
   Serial.println(" uruchomiony");
   
-  if (!radio.begin(NODE_ADDR, ROLE_MASTER, 400)) {
+  if (!radio.begin(NODE_ADDR, ROLE_MASTER, 500)) {
         Serial.println("Inicjalizacja radio nieudana");
         while (1);
     }
@@ -40,20 +40,5 @@ void setup() {
 
 void loop() {
   mymors.handle();
-  
-
-  if (millis() - lastSync > 5000) {
-    WirelessPacket pkt;
-    pkt.to = 0xFF;
-    pkt.type = PKT_TIME_SYNC;
-    pkt.seq++;
-    pkt.length = 4;
-    lastSync = millis();
-    memcpy(pkt.payload, &lastSync, 4);
-    pkt.trace[0] = NODE_ADDR;
-    radio.send(pkt);
-    lastSync = millis();
-  }
-
   radio.poll();
 }

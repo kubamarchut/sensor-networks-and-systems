@@ -7,6 +7,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, uint32_t slot
 
     _anchorTime = millis();
     _lastTxSlotAbs = 0xFFFFFFFF; // Wartosc poczatkowa rozna od 0
+    _syncTimeout = 0;
 
     memset(_lastSeq, 0, sizeof(_lastSeq));
 
@@ -62,14 +63,26 @@ void WirelessCommunication::poll() {
             pkt.trace[0] = _nodeAddr;
             pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
             shouldSend = true;
+        } else if (_role == ROLE_RELAY && _syncTimeout > now) { // TODO tymczasowe
+            pkt.to = 0;
+            pkt.type = PKT_DATA;
+            pkt.length = 0;
+            memset(pkt.trace, 0, MAX_NODES);
+            pkt.trace[0] = _nodeAddr;
+            pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
+            shouldSend = true;
         }
         else if (qPop(_txQueue, pkt)) {
             shouldSend = true;
         }
 
         if (shouldSend) {
-            DBGLN("[TX] Sending packet");
+            uint32_t packetTime = millis();
             sendPacket(pkt);
+            DBG("[TX] Sent packet ");
+            DBG(millis() - packetTime);
+            DBGLN(" ms");
+
             _lastTxSlotAbs = absSlot; // Oznaczamy ten slot absolutny jako obsluzony
         }
     }
@@ -79,7 +92,7 @@ void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
     // Heurystyka czasu lotu + processing
     // TODO ToA!!
-    unsigned long heuristicAirTime = 100;
+    unsigned long heuristicAirTime = 170;
 
     // Zakładamy, że nadawca wysyła na początku swojego okna (20% slotu - musi matchować windowStart z poll)
     uint32_t expectedTxOffset = _slotDurationMs / 5;
@@ -93,6 +106,7 @@ void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
 
     // Reset licznika slotow, zeby nie zablokowac nastepnego cyklu jesli skok czasu byl duzy
     _lastTxSlotAbs = 0xFFFFFFFF;
+    _syncTimeout = now + _slotDurationMs * MAX_NODES * 4;
 }
 
 bool WirelessCommunication::send(const WirelessPacket& pkt) {

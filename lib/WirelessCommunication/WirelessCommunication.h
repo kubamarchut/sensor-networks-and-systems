@@ -1,10 +1,11 @@
 #include <Arduino.h>
 #include "LoRa.h"
 
-#define MAX_NODES       8       
+#define MAX_NODES       2
 #define TX_QUEUE_SIZE   8       
 #define LORA_FREQ       868E6
 
+#define LORA_DEBUG
 #ifdef LORA_DEBUG
   #define DBG(x)    Serial.print(x)
   #define DBGLN(x)  Serial.println(x)
@@ -62,6 +63,7 @@ private:
     PacketQueue _txQueue;
     PacketQueue _rxQueue;
     uint8_t _lastSeq[MAX_NODES];
+    uint32_t _syncTimeout;
 
     bool sendPacket(WirelessPacket& pkt);
     void receiveLoRa();

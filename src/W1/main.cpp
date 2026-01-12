@@ -2,23 +2,8 @@
 #include "Crc8.h"
 #include "morslib.h"
 #include "WirelessCommunication.h"
-#include "SAMDTimerInterrupt.h"
 
-SAMDTimer ITimer(TIMER_TC3);
 WirelessCommunication radio;
-
-void slotISR() {
-    radio.onSlotStartISR();
-}
-
-void guardISR() {
-    radio.onGuardEndISR();
-}
-
-void setupTimers() {
-    ITimer.attachInterruptInterval(1000 * 1000, slotISR);
-}
-
 
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
@@ -40,7 +25,7 @@ void setup() {
   Serial.print(NODE_ADDR);
   Serial.println(" uruchomiony");
   
-  if (!radio.begin(NODE_ADDR, ROLE_RELAY)) {
+  if (!radio.begin(NODE_ADDR, ROLE_RELAY, 500)) {
         Serial.println("Inicjalizacja radio nieudana");
         while (1);
     }
@@ -55,5 +40,8 @@ void loop() {
 
   radio.poll();
   WirelessPacket pkt;
-  radio.receive(pkt);
+  if (radio.hasReceived(pkt)) {
+      Serial.print("Received packet ");
+      Serial.println(pkt.type);
+  }
 }
