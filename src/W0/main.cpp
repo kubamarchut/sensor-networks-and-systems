@@ -2,12 +2,11 @@
 #include "Crc8.h"
 #include "morslib.h"
 #include "WirelessCommunication.h"
-#include "SAMDTimerInterrupt.h"
 
-SAMDTimer ITimer(TIMER_TC3);
 WirelessCommunication radio;
 
-void slotISR() {
+void TC5_Handler() {
+    Serial.println("sth sth");
     radio.onSlotStartISR();
 }
 
@@ -15,8 +14,38 @@ void guardISR() {
     radio.onGuardEndISR();
 }
 
-void setupTimers() {
-    ITimer.attachInterruptInterval(1000 * 1000, slotISR);
+void setupTimers(Tc* tc, uint32_t ms) {
+  // 1. Enable clock for TC3 (APBC Mask)
+  PM->APBCMASK.reg |= PM_APBCMASK_TC5;
+
+  // 2. Configure GCLK0 (48MHz) for TC3
+  GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | 
+                                  GCLK_CLKCTRL_GEN_GCLK0 | 
+                                  GCLK_CLKCTRL_ID_TC4_TC5);
+  while (GCLK->STATUS.bit.SYNCBUSY);
+  
+  // 3. Configure TC3 (16-bit, Prescaler 1024, Match Freq Mode)
+  tc->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16 |
+                           TC_CTRLA_WAVEGEN_MFRQ |
+                           TC_CTRLA_PRESCALER_DIV1024 |
+                           TC_CTRLA_PRESCSYNC_PRESC;
+  while (tc->COUNT16.STATUS.bit.SYNCBUSY);
+
+  // 4. Calculate Compare Value
+  // CPU: 48MHz, Prescaler: 1024 -> 46875 Hz tick
+  // Target: ms
+  uint32_t ccValue = (46875 * ms) / 1000;
+  
+  tc->COUNT16.CC[0].reg = (uint16_t)ccValue;
+  while (tc->COUNT16.STATUS.bit.SYNCBUSY);
+
+  // 5. Enable Interrupt
+  tc->COUNT16.INTENSET.reg = TC_INTENSET_MC0;
+  NVIC_EnableIRQ(TC5_IRQn);
+
+  // 6. Enable TC3
+  tc->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;
+  while (tc->COUNT16.STATUS.bit.SYNCBUSY);
 }
 
 static uint32_t lastSync = 0;
@@ -39,7 +68,7 @@ void setup() {
       delay(500);
   }
   Serial.print("W");
-  Serial.print(NODE_ADDR);
+  Serial.print(NODE_ADDR - 1);
   Serial.println(" uruchomiony");
   
   if (!radio.begin(NODE_ADDR, ROLE_MASTER)) {
@@ -47,8 +76,10 @@ void setup() {
         while (1);
     }
 
-    Serial.println("Inicjalizacja radio udana");
+  Serial.println("Inicjalizacja radio udana");
   
+  setupTimers(TC5, 1000*1000);
+
   mymors.queue('s');
 }
 

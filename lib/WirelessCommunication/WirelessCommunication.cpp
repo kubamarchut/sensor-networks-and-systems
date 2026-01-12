@@ -32,14 +32,14 @@ void WirelessCommunication::onSlotStartISR() {
     _slotFlag = true;
 
 #ifdef LORA_DEBUG
-    DBG("[TDMA] Slot start → ");
+    DBG("[TDMA] Slot start - ");
     DBGLN(_slotIndex + 1);
 #endif
 }
 
 void WirelessCommunication::onGuardEndISR() {
     _txAllowed = true;
-    DBGLN("[TDMA] Guard ended – TX allowed");
+    DBGLN("[TDMA] Guard ended - TX allowed");
 }
 
 // ================= MAIN LOOP =================

@@ -1,148 +1,23 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <TCS3200.h>
-#include "morslib.h"
 
-// adres I2C czujnika koloru
-// #define NODE_ADDR 0x10
+volatile bool timerFlag = false;
 
-// rejestry dla składowych RGB
-#define REG_CNT 3
-#define REG_R (NODE_ADDR + 0x01)
-#define REG_G (NODE_ADDR + 0x02)
-#define REG_B (NODE_ADDR + 0x03)
-
-// timeout obsluga protokolu I2C
-#define COMM_STATE_TIMEOUT 500
-
-#define DEBUG 1
-#define S0_PIN 4
-#define S1_PIN 7
-#define S2_PIN 8
-#define S3_PIN 9
-#define OUT_PIN 5
-#define PIN_POWER 10
-
-TCS3200 tcs3200(S0_PIN, S1_PIN, S2_PIN, S3_PIN, OUT_PIN);
-
-morslib mymors(LED_BUILTIN, 200);
-
-// czas ostatniej zmiany
-unsigned long lastColorChangeTime = 0;
-
-// wartości pomiarow (symulacja lub odczyt z TCS3200)
-uint8_t redVal = 0;
-uint8_t greenVal = 0;
-uint8_t blueVal = 0;
-
-// kontroler stanu do komunikacji I2C
-volatile uint8_t communicationState = 0;
-unsigned long lastCommunicationStateChange = 0;
-
-void performMeasurments()
-{
-  digitalWrite(PIN_POWER, HIGH);
-    delay(100);
-
-    // Read sensor
-    RGBColor rgb = tcs3200.read_rgb_color();
-    redVal   = (uint8_t) constrain(rgb.red,   0, 255);
-    greenVal = (uint8_t) constrain(rgb.green, 0, 255);
-    blueVal  = (uint8_t) constrain(rgb.blue,  0, 255);
-    mymors.queue('p');
-
-    // Debug to Serial
-    if (DEBUG){
-      Serial.print("DEBUG | R: "); Serial.print(redVal);
-      Serial.print("  G: "); Serial.print(greenVal);
-      Serial.print("  B: "); Serial.println(blueVal);
-    }
-
-    digitalWrite(PIN_POWER, LOW);
-    lastColorChangeTime = millis();
-}
-
-// wysłanie danych po I2C – format: [liczba rejestrów] lub n * ([klucz][wartość])
-void onI2CRequest() {
-  uint8_t registers = REG_CNT;
-
-  performMeasurments();
-
-  if (communicationState == 0){
-    Wire.write(registers);
-
-    communicationState = 1;
-    lastCommunicationStateChange = millis();
-  }
-  else if (communicationState == 1){
-    Wire.write(REG_R); Wire.write(redVal);
-    Wire.write(REG_G); Wire.write(greenVal);
-    Wire.write(REG_B); Wire.write(blueVal);
-
-    mymors.queue('r');
-
-    communicationState = 0;
-  }
+void () {
+  // Acknowledge interrupt (Clear MC0 flag)
+  TC3->COUNT16.INTFLAG.bit.MC0 = 1;
+  timerFlag = true;
 }
 
 void setup() {
-  mymors.begin();
-  Wire.begin(NODE_ADDR);
-  Wire.onRequest(onI2CRequest);
-  Serial.begin(9600);
-//  while (!Serial);
-  Serial.print("S");
-  Serial.print(NODE_ADDR);
-  Serial.println(" (czujnik) uruchomiony");
-  //Serial.println("kalibracja");
-
-  pinMode(PIN_POWER, OUTPUT);
-  digitalWrite(PIN_POWER, HIGH);
+  Serial.begin(115200);
+  while (!Serial);
   
-  // Init TCS3200
-  tcs3200.begin();
-  tcs3200.frequency_scaling(TCS3200_OFREQ_2P);
-  
-  // delay(3000);
-  // Serial.println("Calibrating white...");
-  
-  // uint32_t r = tcs3200.read_red();
-  // uint32_t g = tcs3200.read_green();
-  // uint32_t b = tcs3200.read_blue();
-
-  tcs3200.calibrate_light(1367, 1993, 1723);
-  // Serial.print("R: "); Serial.print(r);
-  // Serial.print("  G: "); Serial.print(g);
-  // Serial.print("  B: "); Serial.println(b);
-  
-  // Serial.println("White calibration done");
-  
-  // delay(3000);
-  // Serial.println("Calibrating black...");
-
-  // r = tcs3200.read_red();
-  // g = tcs3200.read_green();
-  // b = tcs3200.read_blue();
-
-  tcs3200.calibrate_dark(10269, 19202, 17411);  
-  // Serial.print("R: "); Serial.print(r);
-  // Serial.print("  G: "); Serial.print(g);
-  // Serial.print("  B: "); Serial.println(b);
-  
-  
-  tcs3200.calibrate();
-  Serial.println("Calibration complete");
-  digitalWrite(PIN_POWER, LOW);
-    mymors.queue('s');
+  setup_timer_tc3(1000); // 1000 ms
 }
 
 void loop() {
-  tcs3200.loop();   // required for library operation
-    mymors.handle();
-
-  if (communicationState == 1){
-    if (millis() - lastCommunicationStateChange >= COMM_STATE_TIMEOUT){
-      communicationState = 0;
-    }
+  if (timerFlag) {
+    timerFlag = false;
+    Serial.println("IRQ");
   }
 }
