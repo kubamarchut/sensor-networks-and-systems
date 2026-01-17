@@ -3,6 +3,14 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
+  </component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
       <config projectName="sensor-networks-and-systems" targetName="PlatformIO" />
@@ -15,10 +23,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Improved WirelessCommunication lib">
+      <change afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/WirelessCommunication/Queue.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/WirelessCommunication/Queue.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,13 +46,18 @@
       </list>
     </option>
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="W1" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="W0" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -58,7 +73,28 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-arduino-samd/cores/arduino/SERCOM.cpp" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-arduino-samd/cores/arduino/SERCOM.h" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/.platformio/packages/framework-arduino-samd/cores/arduino/api/Stream.h" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-arduino-samd/libraries/Wire/Wire.cpp" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL/samd21/include/component/port.h" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL/samd21/include/component/sercom.h" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/arm-none-eabi/include/stdint.h" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/lib/BroadcastBus/BroadcastBus.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/lib/BroadcastBus/BroadcastSerial.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/lib/Crc8/Crc8.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/lib/morslib/morslib.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/S1/main.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/W0/main.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/W1/main.cpp" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="sgNUyJBS" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
   </component>
   <component name="PlatformioLocalSettings">
     <option name="availableProjects">
@@ -108,6 +144,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "project-stage-3",
@@ -122,9 +159,9 @@
   }
 }]]></component>
   <component name="RunManager">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sensor-networks-and-systems" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
