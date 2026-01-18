@@ -16,9 +16,12 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, uint32_t slot
     }
 
     LoRa.setSpreadingFactor(7);
-    LoRa.setSignalBandwidth(62.5E3);
+    LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
     LoRa.enableCrc();
+
+    _history.init();
+
     DBGLN("[API] Begin");
 
     return true;
@@ -56,7 +59,6 @@ void WirelessCommunication::poll() {
         bool shouldSend = false;
 
         if (_role == ROLE_MASTER && _txQueue.isEmpty()) {
-            pkt.to = 0;
             pkt.type = PKT_REQ;
             pkt.length = 0;
             memset(pkt.trace, 0, MAX_NODES);
@@ -64,8 +66,7 @@ void WirelessCommunication::poll() {
             pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
             shouldSend = true;
         } else if (_role == ROLE_SLAVE && _syncTimeout > now) { // TODO tymczasowe
-            pkt.to = 0;
-            pkt.type = PKT_DATA;
+            pkt.type = PKT_RES;
             pkt.length = 0;
             memset(pkt.trace, 0, MAX_NODES);
             pkt.trace[0] = _nodeAddr;
@@ -119,8 +120,10 @@ bool WirelessCommunication::receive(WirelessPacket& pkt) {
 }
 
 bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
+    WirelessPacketRaw rawPkt;
+    encode(pkt, rawPkt);
     LoRa.beginPacket();
-    LoRa.write((uint8_t*)&pkt, sizeof(WirelessPacket));
+    LoRa.write((uint8_t*)&rawPkt, sizeof(WirelessPacketRaw));
     LoRa.endPacket();
     return true;
 }
@@ -128,11 +131,13 @@ bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
 void WirelessCommunication::readPacket() {
     int packetSize = LoRa.parsePacket();
     if (packetSize == 0) return;
-    if (packetSize > sizeof(WirelessPacket)) return;
+    if (packetSize > sizeof(WirelessPacketRaw)) return;
 
+    WirelessPacketRaw rawPkt;
     WirelessPacket pkt;
-    LoRa.readBytes((uint8_t*)&pkt, sizeof(WirelessPacket));
+    LoRa.readBytes((uint8_t*)&rawPkt, sizeof(WirelessPacketRaw));
 
+    decode(rawPkt, pkt);
     if (pkt.trace[0] == 0 || pkt.trace[0] > MAX_NODES) return;
 
     handleIncoming(pkt);
@@ -141,24 +146,86 @@ void WirelessCommunication::readPacket() {
 void WirelessCommunication::handleIncoming(WirelessPacket& pkt) {
     DBGLN("[API] Received packet");
 
-    if (pkt.type == PKT_REQ && _role == ROLE_SLAVE) {
-        DBGLN("[API] Received TIME_SYNC by slave");
-        syncNetwork(pkt.trace[0]);
-    }
+    if (_role == ROLE_SLAVE) {
+        if (pkt.type == PKT_REQ){
+            DBGLN("[API] Synchronization");
+            syncNetwork(pkt.trace[pkt.hopCount - 1]);
 
-    if (pkt.type == PKT_RES) {
-        if (_role == ROLE_MASTER) {
-            DBGLN("[API] Received DATA by master");
-            _rxQueue.push(pkt);
-        } else if (_role == ROLE_SLAVE) {
-            DBGLN("[API] Received DATA by slave");
-            for (int i = 0; i < MAX_NODES; i++) {
-                if (!pkt.trace[i]) {
-                    pkt.trace[i] = _nodeAddr;
-                    _txQueue.push(pkt);
-                    break;
-                }
+            if (pkt.to == _nodeAddr){
+                DBGLN("[API] Packet addressed for this node");
+                _rxQueue.push(pkt);
+                return;
             }
+        }
+        // mechanizm weryfikacji czy wiadomość była już retransmitowana przez ten węzeł        
+        uint32_t now = millis();
+
+        if (_history.contains(pkt.type, pkt.seq, now)) {
+            return;
+        }
+        for (int i = 0; i < MAX_NODES; i++) {
+            if (pkt.trace[i] == _nodeAddr) {
+                DBGLN("[API] Loop detected dropping packet");
+                break;
+            }
+            if (pkt.trace[i] == 0) {
+                DBGLN("[API] Retransmiting packet");
+                _history.add(pkt.type, pkt.seq, 3 * _slotDurationMs, now);
+                pkt.trace[i] = _nodeAddr;
+                _txQueue.push(pkt);
+                break;
+            }
+        }
+    }
+    
+    else if (_role == ROLE_MASTER && pkt.type == PKT_RES) {
+        if (pkt.hopCount > 1 || pkt.trace[0] != 0x07){
+            DBGLN("[API] Packet addressed for this node");
+            _rxQueue.push(pkt);
+        }
+        else {
+            DBGLN("[API] Dropping packet received directly from S1");
+        }
+    }
+}
+
+void WirelessCommunication::encode(const WirelessPacket& logical, WirelessPacketRaw& raw) {
+    memset(&raw, 0, sizeof(raw));
+    raw.type   = (logical.type & 0xF0) |
+                 (logical.to   & 0x0F);
+    raw.seq    = logical.seq;
+    raw.length = logical.length;
+    memcpy(raw.payload, logical.payload, 8);
+
+    for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
+        uint8_t high = logical.trace[2 * i]     & 0x0F;
+        uint8_t low  = logical.trace[2 * i + 1] & 0x0F;
+
+        if(high != 0 || low != 0) {
+            raw.trace[i] = (high << 4) | low;
+        }
+    }
+}
+
+void WirelessCommunication::decode(const WirelessPacketRaw& raw, WirelessPacket& logical) {
+    memset(&logical, 0, sizeof(logical));
+    logical.type   = raw.type & 0xF0;
+    logical.to     = raw.type & 0x0F;
+    logical.seq    = raw.seq;
+    logical.length = raw.length;
+    memcpy(logical.payload, raw.payload, 8);
+
+    for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
+        uint8_t byte = raw.trace[i];
+        if(byte != 0) {
+            uint8_t high = (byte >> 4) & 0x0F;
+            uint8_t low  =  byte       & 0x0F;
+
+            logical.trace[2 * i]     = high;
+            logical.trace[2 * i + 1] = low;
+
+            if(high != 0) logical.hopCount++;
+            if(low  != 0) logical.hopCount++;
         }
     }
 }

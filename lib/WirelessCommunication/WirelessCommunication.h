@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "LoRa.h"
 #include "Queue.h"
+#include "HistoryBuffer.h"
 
 #define MAX_NODES   8
 #define QUEUE_SIZE  8
@@ -27,9 +28,19 @@ enum PacketType : uint8_t {
     PKT_RES = 0b10000000,
 };
 
+struct __attribute__((packed)) WirelessPacketRaw {
+    uint8_t trace[MAX_NODES / 2];
+    uint8_t type;
+    uint16_t seq;
+    uint8_t length;
+    uint8_t payload[8];
+};
+
 struct __attribute__((packed)) WirelessPacket {
     uint8_t trace[MAX_NODES];
+    uint8_t hopCount;
     uint8_t type;
+    uint8_t to;
     uint16_t seq;
     uint8_t length;
     uint8_t payload[8];
@@ -52,6 +63,7 @@ private:
 
     Queue<WirelessPacket, QUEUE_SIZE> _txQueue;
     Queue<WirelessPacket, QUEUE_SIZE> _rxQueue;
+    HistoryBuffer<QUEUE_SIZE> _history;
     uint8_t _lastSeq[MAX_NODES];
     uint32_t _syncTimeout;
 
@@ -59,6 +71,9 @@ private:
     void readPacket();
     void handleIncoming(WirelessPacket& pkt);
     void syncNetwork(uint8_t senderAddr);
+
+    static void encode(const WirelessPacket& logical, WirelessPacketRaw& raw);
+    static void decode(const WirelessPacketRaw& raw, WirelessPacket& logical);
 #ifdef LORA_DEBUG
     void dumpPacket(const WirelessPacket& pkt) const;
 #endif
