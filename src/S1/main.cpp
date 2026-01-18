@@ -1,23 +1,28 @@
 #include <Arduino.h>
+#include <WirelessCommunication.h>
 
-volatile bool timerFlag = false;
+#ifndef NODE_ADDR
+#define NODE_ADDR 0x07
+#endif
 
-void () {
-  // Acknowledge interrupt (Clear MC0 flag)
-  TC3->COUNT16.INTFLAG.bit.MC0 = 1;
-  timerFlag = true;
-}
+WirelessCommunication radio;
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
-  
-  setup_timer_tc3(1000); // 1000 ms
+  #ifdef LORA_DEBUG:
+    while (!Serial){
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(500);
+    }
+  #endif
+
+  Serial.print("S");
+  Serial.print(1);
+  Serial.println(" uruchomiony");
 }
 
 void loop() {
-  if (timerFlag) {
-    timerFlag = false;
-    Serial.println("IRQ");
-  }
+
 }

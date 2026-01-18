@@ -4,13 +4,13 @@
 #include "morslib.h"
 #include "WirelessCommunication.h"
 
-WirelessCommunication radio;
-
-static uint32_t lastSync = 0;
-
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x02            // ID tego węzła master
 #endif
+
+WirelessCommunication radio;
+
+static uint32_t lastSync = 0;
 
 morslib mymors(LED_BUILTIN, 200);
 
