@@ -40,7 +40,7 @@ void loop() {
 
   radio.poll();
   WirelessPacket pkt;
-  if (radio.hasReceived(pkt)) {
+  if (radio.receive(pkt)) {
       Serial.print("Received packet ");
       Serial.println(pkt.type);
   }

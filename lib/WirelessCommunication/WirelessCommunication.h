@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "LoRa.h"
+#include "Queue.h"
 
-#define MAX_NODES       2
-#define TX_QUEUE_SIZE   8       
-#define LORA_FREQ       868E6
+#define MAX_NODES   8
+#define QUEUE_SIZE  8
+#define LORA_FREQ   868E6
 
 #define LORA_DEBUG
 #ifdef LORA_DEBUG
@@ -18,31 +19,20 @@
 
 enum NodeRole : uint8_t {
     ROLE_MASTER,
-    ROLE_RELAY,
-    ROLE_LEAF
+    ROLE_SLAVE,
 };
 
 enum PacketType : uint8_t {
-    PKT_TIME_SYNC = 1,
-    PKT_DATA      = 2, // Poprawiono nazewnictwo zg z impl
-    PKT_PING      = 3, // Opcjonalne
-    PKT_PONG      = 4  // Opcjonalne
+    PKT_REQ = 0b00000000,
+    PKT_RES = 0b10000000,
 };
 
-struct WirelessPacket {
+struct __attribute__((packed)) WirelessPacket {
     uint8_t trace[MAX_NODES];
-    uint8_t to;
     uint8_t type;
-    uint8_t seq;
-    uint8_t payload[32];
+    uint16_t seq;
     uint8_t length;
-};
-
-struct PacketQueue {
-    WirelessPacket buffer[TX_QUEUE_SIZE];
-    uint8_t head = 0;
-    uint8_t tail = 0;
-    uint8_t count = 0;
+    uint8_t payload[8];
 };
 
 class WirelessCommunication {
@@ -50,7 +40,7 @@ public:
     bool begin(uint8_t nodeAddr, NodeRole role, uint32_t slotTimeMs);
     void poll();
     bool send(const WirelessPacket& pkt);
-    bool hasReceived(WirelessPacket& pkt);
+    bool receive(WirelessPacket& pkt);
 
 private:
     uint8_t _nodeAddr;
@@ -58,21 +48,17 @@ private:
     uint32_t _slotDurationMs;
 
     unsigned long _anchorTime;
-    unsigned long _lastTxSlotAbs;   // Zamiast flag bool - absolutny numer obsłużonego slotu
+    unsigned long _lastTxSlotAbs;
 
-    PacketQueue _txQueue;
-    PacketQueue _rxQueue;
+    Queue<WirelessPacket, QUEUE_SIZE> _txQueue;
+    Queue<WirelessPacket, QUEUE_SIZE> _rxQueue;
     uint8_t _lastSeq[MAX_NODES];
     uint32_t _syncTimeout;
 
-    bool sendPacket(WirelessPacket& pkt);
-    void receiveLoRa();
+    bool writePacket(WirelessPacket& pkt);
+    void readPacket();
     void handleIncoming(WirelessPacket& pkt);
     void syncNetwork(uint8_t senderAddr);
-
-    bool qPush(PacketQueue& q, const WirelessPacket& pkt);
-    bool qPop(PacketQueue& q, WirelessPacket& pkt);
-
 #ifdef LORA_DEBUG
     void dumpPacket(const WirelessPacket& pkt) const;
 #endif

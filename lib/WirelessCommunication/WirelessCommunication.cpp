@@ -25,7 +25,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, uint32_t slot
 }
 
 void WirelessCommunication::poll() {
-    receiveLoRa();
+    readPacket();
 
     unsigned long now = millis();
     unsigned long elapsed = now - _anchorTime;
@@ -55,15 +55,15 @@ void WirelessCommunication::poll() {
         WirelessPacket pkt;
         bool shouldSend = false;
 
-        if (_role == ROLE_MASTER && _txQueue.count == 0) {
+        if (_role == ROLE_MASTER && _txQueue.isEmpty()) {
             pkt.to = 0;
-            pkt.type = PKT_TIME_SYNC;
+            pkt.type = PKT_REQ;
             pkt.length = 0;
             memset(pkt.trace, 0, MAX_NODES);
             pkt.trace[0] = _nodeAddr;
             pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
             shouldSend = true;
-        } else if (_role == ROLE_RELAY && _syncTimeout > now) { // TODO tymczasowe
+        } else if (_role == ROLE_SLAVE && _syncTimeout > now) { // TODO tymczasowe
             pkt.to = 0;
             pkt.type = PKT_DATA;
             pkt.length = 0;
@@ -72,13 +72,13 @@ void WirelessCommunication::poll() {
             pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
             shouldSend = true;
         }
-        else if (qPop(_txQueue, pkt)) {
+        else if (_txQueue.pop(pkt)) {
             shouldSend = true;
         }
 
         if (shouldSend) {
             uint32_t packetTime = millis();
-            sendPacket(pkt);
+            writePacket(pkt);
             DBG("[TX] Sent packet ");
             DBG(millis() - packetTime);
             DBGLN(" ms");
@@ -111,21 +111,21 @@ void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
 
 bool WirelessCommunication::send(const WirelessPacket& pkt) {
     DBGLN("[API] send() called");
-    return qPush(_txQueue, pkt);
+    return _txQueue.push(pkt);
 }
 
-bool WirelessCommunication::hasReceived(WirelessPacket& pkt) {
-    return qPop(_rxQueue, pkt);
+bool WirelessCommunication::receive(WirelessPacket& pkt) {
+    return _rxQueue.pop(pkt);
 }
 
-bool WirelessCommunication::sendPacket(WirelessPacket& pkt) {
+bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&pkt, sizeof(WirelessPacket));
     LoRa.endPacket();
     return true;
 }
 
-void WirelessCommunication::receiveLoRa() {
+void WirelessCommunication::readPacket() {
     int packetSize = LoRa.parsePacket();
     if (packetSize == 0) return;
     if (packetSize > sizeof(WirelessPacket)) return;
@@ -141,33 +141,24 @@ void WirelessCommunication::receiveLoRa() {
 void WirelessCommunication::handleIncoming(WirelessPacket& pkt) {
     DBGLN("[API] Received packet");
 
-    if (pkt.type == PKT_TIME_SYNC || pkt.trace[0] == 1) {
-        if (_role != ROLE_MASTER) {
-            DBGLN("[API] Received TIME_SYNC");
-            syncNetwork(pkt.trace[0]);
-        }
+    if (pkt.type == PKT_REQ && _role == ROLE_SLAVE) {
+        DBGLN("[API] Received TIME_SYNC by slave");
+        syncNetwork(pkt.trace[0]);
     }
 
-    if (pkt.type == PKT_DATA) {
-        if (pkt.to == _nodeAddr || pkt.to == 0) {
-            DBGLN("[API] Received DATA");
-            qPush(_rxQueue, pkt);
+    if (pkt.type == PKT_RES) {
+        if (_role == ROLE_MASTER) {
+            DBGLN("[API] Received DATA by master");
+            _rxQueue.push(pkt);
+        } else if (_role == ROLE_SLAVE) {
+            DBGLN("[API] Received DATA by slave");
+            for (int i = 0; i < MAX_NODES; i++) {
+                if (!pkt.trace[i]) {
+                    pkt.trace[i] = _nodeAddr;
+                    _txQueue.push(pkt);
+                    break;
+                }
+            }
         }
     }
-}
-
-bool WirelessCommunication::qPush(PacketQueue& q, const WirelessPacket& pkt) {
-    if (q.count >= TX_QUEUE_SIZE) return false;
-    q.buffer[q.head] = pkt;
-    q.head = (q.head + 1) % TX_QUEUE_SIZE;
-    q.count++;
-    return true;
-}
-
-bool WirelessCommunication::qPop(PacketQueue& q, WirelessPacket& pkt) {
-    if (q.count == 0) return false;
-    pkt = q.buffer[q.tail];
-    q.tail = (q.tail + 1) % TX_QUEUE_SIZE;
-    q.count--;
-    return true;
 }
