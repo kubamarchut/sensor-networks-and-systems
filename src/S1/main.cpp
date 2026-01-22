@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <WirelessCommunication.h>
+#include <Indicator.h>
 
 #ifndef NODE_ADDR
 #define NODE_ADDR 0x07
 #endif
+
+Indicator indicator(9, 10);
 
 WirelessCommunication radio;
 
@@ -28,6 +31,15 @@ void readData() {
 
 void setup() {
   randomSeed(analogRead(A0));
+  indicator.begin();
+  indicator.setColor(Indicator::RED);
+  delay(1000);
+  indicator.setColor(Indicator::GREEN);
+  delay(1000);
+  indicator.setColor(Indicator::YELLOW);
+  delay(1000);
+  indicator.setColor(Indicator::OFF);
+  
   Serial.begin(115200);
   #ifdef LORA_DEBUG:
     while (!Serial){

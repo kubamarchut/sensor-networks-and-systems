@@ -2,6 +2,7 @@
 #include "LoRa.h"
 #include "Queue.h"
 #include "HistoryBuffer.h"
+#include "Indicator.h"
 
 #define MAX_NODES   8
 #define QUEUE_SIZE  8
