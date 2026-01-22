@@ -82,6 +82,7 @@ void setup() {
     indicator.setColor(Indicator::BLUE);
     delay(1000);
     indicator.setColor(Indicator::RED);
+    indicator.off();
 
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(9600);

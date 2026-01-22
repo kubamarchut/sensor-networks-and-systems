@@ -28,12 +28,12 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
-  while(!Serial) {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(1000);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(500);
-  }
+  //while(!Serial) {
+  //    digitalWrite(LED_BUILTIN, HIGH);
+ //     delay(1000);
+ //     digitalWrite(LED_BUILTIN, LOW);
+  //    delay(500);
+ // }
   Serial.print("W");
   Serial.print(NODE_ADDR);
   Serial.println(" uruchomiony");
