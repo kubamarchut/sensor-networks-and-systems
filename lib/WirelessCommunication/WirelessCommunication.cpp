@@ -229,7 +229,7 @@ void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
 
     for (uint8_t i = 1; i < pkt.hopCount && i < MAX_NODES; i++) {
         Serial.print(F("->W"));
-        Serial.print(pkt.trace[i]);
+        Serial.print(pkt.trace[i]-1);
     }
 
     Serial.print(F("->W0"));

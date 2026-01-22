@@ -81,8 +81,7 @@ void setup() {
     delay(1000);
     indicator.setColor(Indicator::BLUE);
     delay(1000);
-    indicator.setColor(Indicator::RED);
-    indicator.off();
+    indicator.setColor(Indicator::OFF);
 
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(9600);
@@ -115,7 +114,6 @@ void loop() {
     if (onlineStopwatch.isTimeout()) {
         uint32_t now = millis();
 
-        Serial.println("Received PKT_RES");
         for (int i = 0; i < MAX_NODES; i++) {
             if (nodes[i].address == 0)
                 break;

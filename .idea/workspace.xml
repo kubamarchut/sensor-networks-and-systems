@@ -24,8 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Fixed WirelessCommunication lib">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/Indicator/Indicator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Indicator/Indicator.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/S1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/S1/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

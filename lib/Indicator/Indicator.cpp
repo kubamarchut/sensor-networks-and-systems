@@ -16,10 +16,10 @@ void Indicator::begin() {
 void Indicator::setColor(Color color) {
   switch (color) {
     case OFF:    off();    break;
-    case RED:    red(true);    break;
-    case GREEN:  green(true);  break;
-    case BLUE:   blue(true);   break;
-    case YELLOW: red(true); green(true); break;
+    case RED:    red(true); green(false); blue(false);   break;
+    case GREEN:  red(false); green(true); blue(false);  break;
+    case BLUE:   red(false); green(false); blue(true);   break;
+    case YELLOW: red(true); green(true); blue(false); break;
   }
 }
 
