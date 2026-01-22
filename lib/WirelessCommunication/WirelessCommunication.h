@@ -42,7 +42,8 @@ struct __attribute__((packed)) WirelessPacketRaw {
 };
 
 struct __attribute__((packed)) WirelessPacket {
-    uint8_t trace[MAX_NODES];
+    uint8_t traceFrom[MAX_NODES / 2];
+    uint8_t traceTo[MAX_NODES / 2];
     uint8_t hopCount;
     uint8_t type;
     uint8_t to;

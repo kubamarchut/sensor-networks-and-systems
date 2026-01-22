@@ -180,11 +180,11 @@ void WirelessCommunication::encode(const WirelessPacket& logical, WirelessPacket
     memcpy(raw.payload, logical.payload, 8);
 
     for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
-        uint8_t high = logical.trace[2 * i]     & 0x0F;
-        uint8_t low  = logical.trace[2 * i + 1] & 0x0F;
+        uint8_t from = logical.traceFrom[i] & 0x0F;
+        uint8_t to   = logical.traceTo[i]   & 0x0F;
 
-        if(high != 0 || low != 0) {
-            raw.trace[i] = (high << 4) | low;
+        if(from != 0 || to != 0) {
+            raw.trace[i] = (from << 4) | to;
         }
     }
 }
@@ -200,14 +200,14 @@ void WirelessCommunication::decode(const WirelessPacketRaw& raw, WirelessPacket&
     for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
         uint8_t byte = raw.trace[i];
         if(byte != 0) {
-            uint8_t high = (byte >> 4) & 0x0F;
-            uint8_t low  =  byte       & 0x0F;
+            uint8_t from = (byte >> 4) & 0x0F;
+            uint8_t to   =  byte       & 0x0F;
 
-            logical.trace[2 * i]     = high;
-            logical.trace[2 * i + 1] = low;
+            logical.traceFrom[i] = from;
+            logical.traceTo[i]   = to;
 
-            if(high != 0) logical.hopCount++;
-            if(low  != 0) logical.hopCount++;
+            if(from != 0) logical.hopCount++;
+            if(to   != 0) logical.hopCount++;
         }
     }
 }
