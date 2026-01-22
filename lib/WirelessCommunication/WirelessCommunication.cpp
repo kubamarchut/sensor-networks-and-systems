@@ -49,28 +49,8 @@ void WirelessCommunication::poll() {
     // 3. Jeszcze nie wysyłałem w TYM KONKRETNYM slocie absolutnym
     if (isMySlot && isTxWindow && absSlot != _lastTxSlotAbs) {
         WirelessPacket pkt;
-        bool shouldSend = false;
 
-        if (_role == ROLE_MASTER && _txQueue.isEmpty()) {
-            pkt.type = PKT_REQ;
-            pkt.length = 0;
-            memset(pkt.trace, 0, MAX_NODES);
-            pkt.trace[0] = _nodeAddr;
-            pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
-            shouldSend = true;
-        } else if (_role == ROLE_SLAVE && _syncTimeout > now) { // TODO tymczasowe
-            pkt.type = PKT_RES;
-            pkt.length = 0;
-            memset(pkt.trace, 0, MAX_NODES);
-            pkt.trace[0] = _nodeAddr;
-            pkt.seq = _lastSeq[_nodeAddr-1]++; // Inkrementacja sekwencji SYNC
-            shouldSend = true;
-        }
-        else if (_txQueue.pop(pkt)) {
-            shouldSend = true;
-        }
-
-        if (shouldSend) {
+        if (_txQueue.pop(pkt)) {
             uint32_t packetTime = millis();
             writePacket(pkt);
             DBG("[TX] Sent packet ");
