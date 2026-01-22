@@ -43,5 +43,10 @@ void loop() {
   if (radio.receive(pkt)) {
       Serial.print("Received packet ");
       Serial.println(pkt.type);
+
+      WirelessPacket dataResponse;
+      dataResponse.type = PKT_RES;
+      dataResponse.length = 0;
+      radio.send(dataResponse);
   }
 }
