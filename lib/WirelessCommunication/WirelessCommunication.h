@@ -34,7 +34,7 @@ enum PacketType : uint8_t {
 };
 
 struct __attribute__((packed)) WirelessPacketRaw {
-    uint8_t trace[MAX_NODES / 2];
+    uint8_t trace[MAX_NODES];
     uint8_t type;
     uint16_t seq;
     uint8_t length;
@@ -42,8 +42,8 @@ struct __attribute__((packed)) WirelessPacketRaw {
 };
 
 struct __attribute__((packed)) WirelessPacket {
-    uint8_t traceFrom[MAX_NODES / 2];
-    uint8_t traceTo[MAX_NODES / 2];
+    uint8_t initialTrace[MAX_NODES];
+    uint8_t trace[MAX_NODES];
     uint8_t hopCount;
     uint8_t type;
     uint8_t to;
@@ -58,12 +58,13 @@ public:
     void poll();
     bool send(const WirelessPacket& pkt);
     bool receive(WirelessPacket& pkt);
-
-private:
+    static void dumpPacket(WirelessPacket& pkt);
+    
+    private:
     uint8_t _nodeAddr;
     NodeRole _role;
     uint32_t _slotDurationMs;
-
+    
     unsigned long _anchorTime;
     unsigned long _lastTxSlotAbs;
 
@@ -72,15 +73,13 @@ private:
     HistoryBuffer<QUEUE_SIZE> _history;
     uint8_t _lastSeq[MAX_NODES];
     uint32_t _syncTimeout;
-
+    
     bool writePacket(WirelessPacket& pkt);
     void readPacket();
     void handleIncoming(WirelessPacket& pkt);
     void syncNetwork(uint8_t senderAddr);
-
+    
     static void encode(const WirelessPacket& logical, WirelessPacketRaw& raw);
     static void decode(const WirelessPacketRaw& raw, WirelessPacket& logical);
-#ifdef LORA_DEBUG
-    void dumpPacket(const WirelessPacket& pkt) const;
-#endif
+    static int computeTotalTime(const WirelessPacket& pkt);
 };

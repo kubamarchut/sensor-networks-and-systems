@@ -6,7 +6,7 @@
 #define NODE_ADDR 0x07
 #endif
 
-Indicator indicator(9, 10);
+Indicator indicator(9, 10, 11);
 
 WirelessCommunication radio;
 
@@ -36,9 +36,9 @@ void setup() {
   delay(1000);
   indicator.setColor(Indicator::GREEN);
   delay(1000);
-  indicator.setColor(Indicator::YELLOW);
+  indicator.setColor(Indicator::BLUE);
   delay(1000);
-  indicator.setColor(Indicator::OFF);
+  indicator.setColor(Indicator::GREEN);
   
   Serial.begin(115200);
   #ifdef LORA_DEBUG:
@@ -73,6 +73,7 @@ void loop() {
       readData();
       WirelessPacket dataResponse;
       dataResponse.type = PKT_RES;
+      memset(dataResponse.payload, 0, 8);
       dataResponse.length = 3;
       dataResponse.payload[0] = 0x01;
       dataResponse.payload[1] = currentColor.r;
@@ -80,6 +81,9 @@ void loop() {
       dataResponse.payload[3] = currentColor.g;
       dataResponse.payload[4] = 0x03;
       dataResponse.payload[5] = currentColor.b;
+      memcpy(dataResponse.initialTrace, pkt.trace, MAX_NODES);
+      memset(dataResponse.trace, 0, MAX_NODES);
+      dataResponse.trace[0] = NODE_ADDR;
       radio.send(dataResponse);
   }
 }

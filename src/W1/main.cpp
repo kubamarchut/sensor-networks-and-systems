@@ -9,10 +9,22 @@ WirelessCommunication radio;
 #define NODE_ADDR 0x02            // ID tego węzła master
 #endif
 
+Indicator indicator(9, 10, 11);
 morslib mymors(LED_BUILTIN, 200);
 
 void setup() {
   mymors.begin();
+
+  randomSeed(analogRead(A0));
+  indicator.begin();
+  indicator.setColor(Indicator::RED);
+  delay(1000);
+  indicator.setColor(Indicator::GREEN);
+  delay(1000);
+  indicator.setColor(Indicator::BLUE);
+  delay(1000);
+  indicator.setColor(Indicator::YELLOW);
+
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
   while(!Serial) {
@@ -46,7 +58,11 @@ void loop() {
 
       WirelessPacket dataResponse;
       dataResponse.type = PKT_RES;
+      memset(dataResponse.payload, 0, 8);
       dataResponse.length = 0;
+      memcpy(dataResponse.initialTrace, pkt.trace, MAX_NODES);
+      memset(dataResponse.trace, 0, MAX_NODES);
+      dataResponse.trace[0] = NODE_ADDR;
       radio.send(dataResponse);
   }
 }

@@ -5,12 +5,13 @@
 #include "Stopwatch.h"
 
 #ifndef NODE_ADDR
-#define NODE_ADDR 0x02            // ID tego węzła master
+#define NODE_ADDR 0x01            // ID tego węzła master
 #endif
 
+Indicator indicator(9, 10, 11);
 WirelessCommunication radio;
 Stopwatch requestStopwatch(5000);
-Stopwatch responseDebounce(0xFFFFFFFF);
+Stopwatch onlineStopwatch(10000);
 
 uint16_t seq;
 
@@ -26,34 +27,44 @@ void receiveResponse() {
     WirelessPacket pkt;
 
     while (radio.receive(pkt)) {
-        responseDebounce.reset(LORA_ROUND);
         if (pkt.type == PKT_RES) {
             for (int i = 0; i < MAX_NODES; i++) {
-                if (nodes[i].address == pkt.trace[0]) {
-                    nodes[i].ttl = millis() + 10000;
-                    break;
-                }
+                uint8_t address = pkt.trace[i];
 
-                if (nodes[i].address == 0) {
-                    nodes[i].address = pkt.trace[0];
-                    nodes[i].ttl = millis() + 10000;
+                if (address == 0)
                     break;
+
+                for (int j = 0; j < MAX_NODES; j++) {
+                    if (nodes[j].address == address) {
+                        nodes[j].ttl = millis() + 10000;
+                        break;
+                    }
+
+                    if (nodes[j].address == 0) {
+                        nodes[j].address = address;
+                        nodes[j].ttl = millis() + 10000;
+                        break;
+                    }
                 }
             }
         }
+
+        WirelessCommunication::dumpPacket(pkt);
     }
 }
 
 void sendRequest() {
     if (requestStopwatch.isTimeout()) {
         WirelessPacket pkt;
+        memset(pkt.trace, 0, MAX_NODES);
+        memset(pkt.initialTrace, 0, MAX_NODES);
+        memset(pkt.payload, 0, 8);
         pkt.trace[0] = NODE_ADDR;
         pkt.hopCount = 1;
         pkt.type = PKT_REQ;
         pkt.to = 0x07;
         pkt.seq = seq++;
         pkt.length = 0;
-        memset(pkt.trace, 0, MAX_NODES);
 
         radio.send(pkt);
         requestStopwatch.reset();
@@ -62,6 +73,16 @@ void sendRequest() {
 
 void setup() {
     mymors.begin();
+    randomSeed(analogRead(A0));
+    indicator.begin();
+    indicator.setColor(Indicator::RED);
+    delay(1000);
+    indicator.setColor(Indicator::GREEN);
+    delay(1000);
+    indicator.setColor(Indicator::BLUE);
+    delay(1000);
+    indicator.setColor(Indicator::RED);
+
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(9600);
     while (!Serial) {
@@ -80,7 +101,6 @@ void setup() {
     }
 
     Serial.println("Inicjalizacja radio udana");
-    randomSeed(analogRead(A0));
     seq = random();
     mymors.queue('s');
 }
@@ -91,7 +111,7 @@ void loop() {
     receiveResponse();
     sendRequest();
 
-    if (responseDebounce.isTimeout()) {
+    if (onlineStopwatch.isTimeout()) {
         uint32_t now = millis();
 
         Serial.println("Received PKT_RES");
@@ -101,21 +121,24 @@ void loop() {
 
             uint8_t index = nodes[i].address-1;
             if (index <= 5) {
-                Serial.print("\tW");
+                Serial.print(" W");
                 Serial.print(index);
             } else {
-                Serial.print("\tS");
-                Serial.print(index);
+                Serial.print(" S");
+                Serial.print(index-5);
             }
 
-            Serial.print(" ");
+            Serial.print("-");
 
-            if (nodes[i].ttl <= now) {
-                Serial.println(" online");
+            if (nodes[i].ttl >= now) {
+                Serial.print("on");
             } else {
-                Serial.println(" offline !!");
+                Serial.print("off");
             }
         }
-        responseDebounce.reset(0xFFFFFFFF);
+        Serial.println();
+        onlineStopwatch.reset();
     }
+
+
 }

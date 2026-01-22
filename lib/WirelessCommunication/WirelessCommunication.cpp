@@ -18,6 +18,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role) {
     LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
     LoRa.setPreambleLength(8);
+    LoRa.setTxPower(20);
     LoRa.enableCrc();
 
     _history.init();
@@ -159,9 +160,9 @@ void WirelessCommunication::encode(const WirelessPacket& logical, WirelessPacket
     raw.length = logical.length;
     memcpy(raw.payload, logical.payload, 8);
 
-    for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
-        uint8_t from = logical.traceFrom[i] & 0x0F;
-        uint8_t to   = logical.traceTo[i]   & 0x0F;
+    for(uint8_t i = 0; i < MAX_NODES; i++) {
+        uint8_t from = logical.initialTrace[i] & 0x0F;
+        uint8_t to   = logical.trace[i]        & 0x0F;
 
         if(from != 0 || to != 0) {
             raw.trace[i] = (from << 4) | to;
@@ -177,17 +178,64 @@ void WirelessCommunication::decode(const WirelessPacketRaw& raw, WirelessPacket&
     logical.length = raw.length;
     memcpy(logical.payload, raw.payload, 8);
 
-    for(uint8_t i = 0; i < MAX_NODES / 2; i++) {
+    for(uint8_t i = 0; i < MAX_NODES; i++) {
         uint8_t byte = raw.trace[i];
         if(byte != 0) {
             uint8_t from = (byte >> 4) & 0x0F;
             uint8_t to   =  byte       & 0x0F;
 
-            logical.traceFrom[i] = from;
-            logical.traceTo[i]   = to;
+            logical.initialTrace[i] = from;
+            logical.trace[i]        = to;
 
-            if(from != 0) logical.hopCount++;
+            //if(from != 0) logical.hopCount++;
             if(to   != 0) logical.hopCount++;
         }
     }
+}
+
+void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
+    Serial.print(F("PKT "));
+
+    // Inter-transmission time (example: using seq)
+    Serial.print(F("Itc="));
+    Serial.print(WirelessCommunication::computeTotalTime(pkt));
+    Serial.print(F("ms "));
+
+    // Payload
+    Serial.print(F("data=("));
+    for (uint8_t i = 0; i < pkt.length && i < sizeof(pkt.payload); i++) {
+        Serial.print(pkt.payload[i]);
+        if (i + 1 < pkt.length)
+            Serial.print(F(", "));
+    }
+    Serial.print(F(") "));
+
+    // Trace
+    Serial.print(F("S"));
+    Serial.print(pkt.initialTrace[0]);
+
+    for (uint8_t i = 1; i < pkt.hopCount && i < MAX_NODES; i++) {
+        Serial.print(F("->W"));
+        Serial.print(pkt.trace[i]);
+    }
+
+    Serial.print(F("->W0"));
+    Serial.println();
+}
+
+int WirelessCommunication::computeTotalTime(const WirelessPacket& pkt)
+{
+    if (pkt.hopCount == 0) return 0;
+
+    int totalSlots = 1;
+
+    for (size_t i = 1; i < pkt.hopCount; i++) {
+        if (pkt.trace[i - 1] <= pkt.trace[i]) {
+            totalSlots += pkt.trace[i] - pkt.trace[i - 1];
+        } else {
+            totalSlots += MAX_NODES - pkt.trace[i - 1] + pkt.trace[i];
+        }
+    }
+
+    return totalSlots * LORA_SLOT - 2 * LORA_TICK;
 }
