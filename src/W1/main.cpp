@@ -24,6 +24,7 @@ void setup() {
   indicator.setColor(Indicator::BLUE);
   delay(1000);
   indicator.setColor(Indicator::YELLOW);
+  indicator.off();
 
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
@@ -37,7 +38,7 @@ void setup() {
   Serial.print(NODE_ADDR);
   Serial.println(" uruchomiony");
   
-  if (!radio.begin(NODE_ADDR, ROLE_SLAVE)) {
+  if (!radio.begin(NODE_ADDR, ROLE_SLAVE, &indicator)) {
         Serial.println("Inicjalizacja radio nieudana");
         while (1);
     }

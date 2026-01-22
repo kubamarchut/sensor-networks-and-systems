@@ -3,16 +3,17 @@
 #include "Queue.h"
 #include "HistoryBuffer.h"
 #include "Indicator.h"
+#include "Stopwatch.h"
 
 #define MAX_NODES   8
 #define QUEUE_SIZE  8
 #define LORA_FREQ   868E6
-#define LORA_TOA    (36 + 4)
+#define LORA_TOA    (185 + 5)
 #define LORA_TICK   (LORA_TOA / 3)
 #define LORA_SLOT   (LORA_TICK * 5)
 #define LORA_ROUND  (LORA_SLOT * MAX_NODES)
 
-#define LORA_DEBUG
+//#define LORA_DEBUG
 #ifdef LORA_DEBUG
   #define DBG(x)    Serial.print(x)
   #define DBGLN(x)  Serial.println(x)
@@ -54,7 +55,7 @@ struct __attribute__((packed)) WirelessPacket {
 
 class WirelessCommunication {
 public:
-    bool begin(uint8_t nodeAddr, NodeRole role);
+    bool begin(uint8_t nodeAddr, NodeRole role, Indicator* indicator);
     void poll();
     bool send(const WirelessPacket& pkt);
     bool receive(WirelessPacket& pkt);
@@ -67,6 +68,8 @@ public:
     
     unsigned long _anchorTime;
     unsigned long _lastTxSlotAbs;
+    Indicator* _indicator;
+    Stopwatch _rxIndicator;
 
     Queue<WirelessPacket, QUEUE_SIZE> _txQueue;
     Queue<WirelessPacket, QUEUE_SIZE> _rxQueue;

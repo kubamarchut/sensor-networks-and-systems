@@ -95,7 +95,7 @@ void setup() {
     Serial.print(NODE_ADDR - 1);
     Serial.println(" uruchomiony");
 
-    if (!radio.begin(NODE_ADDR, ROLE_MASTER)) {
+    if (!radio.begin(NODE_ADDR, ROLE_MASTER, &indicator)) {
         Serial.println("Inicjalizacja radio nieudana");
         while (1);
     }

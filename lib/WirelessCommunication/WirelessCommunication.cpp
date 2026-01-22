@@ -1,12 +1,14 @@
 #include "WirelessCommunication.h"
 
-bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role) {
+bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* indicator) {
     _nodeAddr = nodeAddr;
     _role = role;
+    _indicator = indicator;
 
     _anchorTime = millis();
     _lastTxSlotAbs = 0xFFFFFFFF; // Wartosc poczatkowa rozna od 0
     _syncTimeout = 0;
+    _rxIndicator = Stopwatch(0xFFFFFFFF);
 
     memset(_lastSeq, 0, sizeof(_lastSeq));
 
@@ -14,7 +16,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role) {
         return false;
     }
 
-    LoRa.setSpreadingFactor(7);
+    LoRa.setSpreadingFactor(9);
     LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
     LoRa.setPreambleLength(8);
@@ -61,6 +63,12 @@ void WirelessCommunication::poll() {
             _lastTxSlotAbs = absSlot; // Oznaczamy ten slot absolutny jako obsluzony
         }
     }
+
+    
+    if (_rxIndicator.isTimeout()) {
+        _indicator->blue(false);
+        _rxIndicator.reset(0xFFFFFFFF);
+    }
 }
 
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
@@ -83,11 +91,14 @@ bool WirelessCommunication::receive(WirelessPacket& pkt) {
 }
 
 bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
+    _indicator->red(true);
     WirelessPacketRaw rawPkt;
     encode(pkt, rawPkt);
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&rawPkt, sizeof(WirelessPacketRaw));
     LoRa.endPacket();
+    _indicator->red(false);
+
     return true;
 }
 
@@ -103,6 +114,8 @@ void WirelessCommunication::readPacket() {
     decode(rawPkt, pkt);
     if (pkt.trace[0] == 0 || pkt.trace[0] > MAX_NODES) return;
 
+    _indicator->blue(true);
+    _rxIndicator.reset(LORA_TOA);
     handleIncoming(pkt);
 }
 

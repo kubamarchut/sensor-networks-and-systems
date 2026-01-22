@@ -17,16 +17,15 @@ class Indicator {
     void begin();
     void setColor(Color color);
 
+    void off();
+    void red(bool state);
+    void green(bool state);
+    void blue(bool state);
+
   private:
     uint8_t _pinR;
     uint8_t _pinG;
     uint8_t _pinB;
-
-    void off();
-    void red();
-    void green();
-    void yellow();
-    void blue();
 };
 
 #endif
