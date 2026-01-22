@@ -1,8 +1,6 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <stdint.h>
-
 template <typename T, uint16_t Size>
 class Queue {
 public:
@@ -54,6 +52,5 @@ private:
     uint16_t tail;
     uint16_t count;
 };
-
 
 #endif //QUEUE_H

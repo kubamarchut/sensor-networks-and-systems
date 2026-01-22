@@ -1,9 +1,8 @@
 #include "WirelessCommunication.h"
 
-bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, uint32_t slotTimeMs) {
+bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role) {
     _nodeAddr = nodeAddr;
     _role = role;
-    _slotDurationMs = slotTimeMs;
 
     _anchorTime = millis();
     _lastTxSlotAbs = 0xFFFFFFFF; // Wartosc poczatkowa rozna od 0
@@ -18,6 +17,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, uint32_t slot
     LoRa.setSpreadingFactor(7);
     LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
+    LoRa.setPreambleLength(8);
     LoRa.enableCrc();
 
     _history.init();
@@ -33,19 +33,12 @@ void WirelessCommunication::poll() {
     unsigned long now = millis();
     unsigned long elapsed = now - _anchorTime;
 
-    // Obliczenie absolutnego numeru slotu od startu
-    unsigned long absSlot = elapsed / _slotDurationMs;
+    unsigned long absSlot = elapsed / LORA_SLOT;
+    unsigned long timeInSlot = elapsed % LORA_SLOT;
 
-    // Obliczenie offsetu wewnatrz slotu
-    unsigned long timeInSlot = elapsed % _slotDurationMs;
-
-    // Ustalenie czyj to slot (zakladamy adresy 1..MAX_NODES, sloty 0..MAX-1)
-    // Cykl powtarza sie co MAX_NODES
     uint8_t currentSlotOwner = (absSlot % MAX_NODES) + 1;
-
-    // Definicja okna transmisji: np. 20% - 40% czasu trwania slotu (Tick 1)
-    uint32_t windowStart = _slotDurationMs / 5;
-    uint32_t windowEnd = windowStart * 2;
+    uint32_t windowStart = LORA_TICK;
+    uint32_t windowEnd = LORA_TICK * 2;
 
     bool isTxWindow = (timeInSlot >= windowStart && timeInSlot < windowEnd);
     bool isMySlot = (currentSlotOwner == _nodeAddr);
@@ -91,23 +84,12 @@ void WirelessCommunication::poll() {
 
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
-    // Heurystyka czasu lotu + processing
-    // TODO ToA!!
-    unsigned long heuristicAirTime = 170;
 
-    // Zakładamy, że nadawca wysyła na początku swojego okna (20% slotu - musi matchować windowStart z poll)
-    uint32_t expectedTxOffset = _slotDurationMs / 5;
-
-    // senderAddr-1 bo sloty sa 0-indeksowane, adresy 1-indeksowane
-    // Obliczamy gdzie teoretycznie powinien zaczac sie caly cykl
-    // Offset = (Początek slotu nadawcy) + (Moment nadania wewnątrz slotu) + (Czas lotu)
-    unsigned long offset = ((senderAddr - 1) * _slotDurationMs) + expectedTxOffset + heuristicAirTime;
+    unsigned long offset = ((senderAddr - 1) * LORA_TICK) + LORA_TICK + LORA_TOA;
 
     _anchorTime = now - offset;
-
-    // Reset licznika slotow, zeby nie zablokowac nastepnego cyklu jesli skok czasu byl duzy
     _lastTxSlotAbs = 0xFFFFFFFF;
-    _syncTimeout = now + _slotDurationMs * MAX_NODES * 4;
+    _syncTimeout = now + LORA_SLOT * MAX_NODES * 4;
 }
 
 bool WirelessCommunication::send(const WirelessPacket& pkt) {
@@ -170,7 +152,7 @@ void WirelessCommunication::handleIncoming(WirelessPacket& pkt) {
             }
             if (pkt.trace[i] == 0) {
                 DBGLN("[API] Retransmiting packet");
-                _history.add(pkt.type, pkt.seq, 3 * _slotDurationMs, now);
+                _history.add(pkt.type, pkt.seq, 3 * LORA_ROUND, now);
                 pkt.trace[i] = _nodeAddr;
                 _txQueue.push(pkt);
                 break;

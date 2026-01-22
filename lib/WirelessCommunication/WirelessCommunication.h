@@ -7,6 +7,10 @@
 #define MAX_NODES   8
 #define QUEUE_SIZE  8
 #define LORA_FREQ   868E6
+#define LORA_TOA    (36 + 4)
+#define LORA_TICK   (LORA_TOA / 3)
+#define LORA_SLOT   (LORA_TICK * 5)
+#define LORA_ROUND  (LORA_SLOT * MAX_NODES)
 
 #define LORA_DEBUG
 #ifdef LORA_DEBUG
@@ -49,7 +53,7 @@ struct __attribute__((packed)) WirelessPacket {
 
 class WirelessCommunication {
 public:
-    bool begin(uint8_t nodeAddr, NodeRole role, uint32_t slotTimeMs);
+    bool begin(uint8_t nodeAddr, NodeRole role);
     void poll();
     bool send(const WirelessPacket& pkt);
     bool receive(WirelessPacket& pkt);
