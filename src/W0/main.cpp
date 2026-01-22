@@ -21,8 +21,8 @@ struct WirelessNode {
     uint32_t lastSeen;
 };
 WirelessNode nodes[] = {
-//    { .address = 0x02, .ttl = 0, .lastSeen = 0 },
-//    { .address = 0x03, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x02, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x03, .ttl = 0, .lastSeen = 0 },
     { .address = 0x04, .ttl = 0, .lastSeen = 0 },
     { .address = 0x05, .ttl = 0, .lastSeen = 0 },
     { .address = 0x06, .ttl = 0, .lastSeen = 0 },
@@ -156,8 +156,8 @@ void loop() {
         Serial.println();
 
         if (offlineNode != nullptr) {
-            Serial.print("Requested offline node 0x");
-            Serial.println(offlineNode->address, HEX);
+//            Serial.print("Requested offline node 0x");
+//            Serial.println(offlineNode->address, HEX);
 
             offlineNode->ttl = millis();
             sendRequest(offlineNode->address);
