@@ -8,7 +8,7 @@
 #define MAX_NODES   8
 #define QUEUE_SIZE  8
 #define LORA_FREQ   868E6
-#define LORA_TOA    (185 + 5)
+#define LORA_TOA    (330 + 4)
 #define LORA_TICK   (LORA_TOA / 3)
 #define LORA_SLOT   (LORA_TICK * 5)
 #define LORA_ROUND  (LORA_SLOT * MAX_NODES)

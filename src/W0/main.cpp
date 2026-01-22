@@ -11,7 +11,7 @@
 Indicator indicator(9, 10, 11);
 WirelessCommunication radio;
 Stopwatch requestStopwatch(5000);
-Stopwatch onlineStopwatch(10000);
+Stopwatch onlineStopwatch(5000);
 
 uint16_t seq;
 
@@ -19,7 +19,14 @@ struct WirelessNode {
     uint8_t address;
     uint32_t ttl;
 };
-WirelessNode nodes[MAX_NODES];
+WirelessNode nodes[] = {
+    { .address = 0x02, .ttl = 0 },
+    { .address = 0x03, .ttl = 0 },
+    { .address = 0x04, .ttl = 0 },
+    { .address = 0x05, .ttl = 0 },
+    { .address = 0x06, .ttl = 0 },
+    { .address = 0x07, .ttl = 0 },
+};
 
 morslib mymors(LED_BUILTIN, 200);
 
@@ -53,22 +60,19 @@ void receiveResponse() {
     }
 }
 
-void sendRequest() {
-    if (requestStopwatch.isTimeout()) {
-        WirelessPacket pkt;
-        memset(pkt.trace, 0, MAX_NODES);
-        memset(pkt.initialTrace, 0, MAX_NODES);
-        memset(pkt.payload, 0, 8);
-        pkt.trace[0] = NODE_ADDR;
-        pkt.hopCount = 1;
-        pkt.type = PKT_REQ;
-        pkt.to = 0x07;
-        pkt.seq = seq++;
-        pkt.length = 0;
+void sendRequest(uint8_t address) {
+    WirelessPacket pkt;
+    memset(pkt.trace, 0, MAX_NODES);
+    memset(pkt.initialTrace, 0, MAX_NODES);
+    memset(pkt.payload, 0, 8);
+    pkt.trace[0] = NODE_ADDR;
+    pkt.hopCount = 1;
+    pkt.type = PKT_REQ;
+    pkt.to = address;
+    pkt.seq = seq++;
+    pkt.length = 0;
 
-        radio.send(pkt);
-        requestStopwatch.reset();
-    }
+    radio.send(pkt);
 }
 
 void setup() {
@@ -109,12 +113,16 @@ void loop() {
     mymors.handle();
     radio.poll();
     receiveResponse();
-    sendRequest();
+
+    if (requestStopwatch.isTimeout()) {
+        sendRequest(0x07);
+        requestStopwatch.reset();
+    }
 
     if (onlineStopwatch.isTimeout()) {
         uint32_t now = millis();
 
-        for (int i = 0; i < MAX_NODES; i++) {
+        for (int i = 0; i < (sizeof(nodes)/sizeof(WirelessNode)); i++) {
             if (nodes[i].address == 0)
                 break;
 
@@ -133,6 +141,7 @@ void loop() {
                 Serial.print("on");
             } else {
                 Serial.print("off");
+                sendRequest(nodes[i].address);
             }
         }
         Serial.println();

@@ -16,8 +16,8 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* in
         return false;
     }
 
-    LoRa.setSpreadingFactor(9);
-    LoRa.setSignalBandwidth(125E3);
+    LoRa.setSpreadingFactor(12);
+    LoRa.setSignalBandwidth(500E3);
     LoRa.setCodingRate4(5);
     LoRa.setPreambleLength(8);
     LoRa.setTxPower(20);

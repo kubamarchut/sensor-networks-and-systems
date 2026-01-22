@@ -22,11 +22,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Fixed WirelessCommunication lib">
+    <list default="true" id="6e3e57a5-9c4b-412b-a023-c7f32a2716cb" name="Changes" comment="Fixed indicator library">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/Indicator/Indicator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/Indicator/Indicator.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/S1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/S1/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" beforeDir="false" afterPath="$PROJECT_DIR$/lib/WirelessCommunication/WirelessCommunication.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W0/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W0/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/W1/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/W1/main.cpp" afterDir="false" />
     </list>
@@ -45,7 +44,7 @@
       </list>
     </option>
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="W0" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="W5" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -259,7 +258,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769071619204</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Fixed indicator library">
+      <option name="closed" value="true" />
+      <created>1769087603214</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1769087603214</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -287,6 +294,7 @@
     <MESSAGE value="Poprawa stabilności W0" />
     <MESSAGE value="Improved WirelessCommunication lib" />
     <MESSAGE value="Fixed WirelessCommunication lib" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed WirelessCommunication lib" />
+    <MESSAGE value="Fixed indicator library" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed indicator library" />
   </component>
 </project>
