@@ -23,8 +23,7 @@ void setup() {
   delay(1000);
   indicator.setColor(Indicator::BLUE);
   delay(1000);
-  indicator.setColor(Indicator::YELLOW);
-  indicator.off();
+  indicator.setColor(Indicator::OFF);
 
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);   
@@ -35,7 +34,7 @@ void setup() {
       delay(500);
   }
   Serial.print("W");
-  Serial.print(NODE_ADDR);
+  Serial.print(NODE_ADDR-1);
   Serial.println(" uruchomiony");
   
   if (!radio.begin(NODE_ADDR, ROLE_SLAVE, &indicator)) {

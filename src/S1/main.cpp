@@ -38,7 +38,7 @@ void setup() {
   delay(1000);
   indicator.setColor(Indicator::BLUE);
   delay(1000);
-  indicator.setColor(Indicator::GREEN);
+  indicator.setColor(Indicator::OFF);
   
   Serial.begin(115200);
   #ifdef LORA_DEBUG:
