@@ -13,7 +13,6 @@
 #define LORA_SLOT   (LORA_TICK * 5)
 #define LORA_ROUND  (LORA_SLOT * MAX_NODES)
 
-//#define LORA_DEBUG
 #ifdef LORA_DEBUG
   #define DBG(x)    Serial.print(x)
   #define DBGLN(x)  Serial.println(x)

@@ -18,14 +18,15 @@ uint16_t seq;
 struct WirelessNode {
     uint8_t address;
     uint32_t ttl;
+    uint32_t lastSeen;
 };
 WirelessNode nodes[] = {
-    { .address = 0x02, .ttl = 0 },
-    { .address = 0x03, .ttl = 0 },
-    { .address = 0x04, .ttl = 0 },
-    { .address = 0x05, .ttl = 0 },
-    { .address = 0x06, .ttl = 0 },
-    { .address = 0x07, .ttl = 0 },
+//    { .address = 0x02, .ttl = 0, .lastSeen = 0 },
+//    { .address = 0x03, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x04, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x05, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x06, .ttl = 0, .lastSeen = 0 },
+    { .address = 0x07, .ttl = 0, .lastSeen = 0 },
 };
 
 morslib mymors(LED_BUILTIN, 200);
@@ -34,27 +35,30 @@ void receiveResponse() {
     WirelessPacket pkt;
 
     while (radio.receive(pkt)) {
-        if (pkt.type == PKT_RES) {
-            for (int i = 0; i < MAX_NODES; i++) {
-                uint8_t address = pkt.trace[i];
+        for (int i = 0; i < MAX_NODES; i++) {
+            uint8_t address = pkt.trace[i];
 
-                if (address == 0)
+            if (address == 0x0)
+                break;
+            if (address == 0x1)
+                continue;
+
+            for (int j = 0; j < MAX_NODES; j++) {
+                if (nodes[j].address == address) {
+                    nodes[j].lastSeen = millis();
+                    nodes[j].ttl = millis() + 20000;
                     break;
+                }
 
-                for (int j = 0; j < MAX_NODES; j++) {
-                    if (nodes[j].address == address) {
-                        nodes[j].ttl = millis() + 10000;
-                        break;
-                    }
-
-                    if (nodes[j].address == 0) {
-                        nodes[j].address = address;
-                        nodes[j].ttl = millis() + 10000;
-                        break;
-                    }
+                if (nodes[j].address == 0) {
+                    nodes[j].address = address;
+                    nodes[j].lastSeen = millis();
+                    nodes[j].ttl = millis() + 20000;
+                    break;
                 }
             }
         }
+
 
         WirelessCommunication::dumpPacket(pkt);
     }
@@ -122,6 +126,7 @@ void loop() {
     if (onlineStopwatch.isTimeout()) {
         uint32_t now = millis();
 
+        WirelessNode *offlineNode = nullptr;
         for (int i = 0; i < (sizeof(nodes)/sizeof(WirelessNode)); i++) {
             if (nodes[i].address == 0)
                 break;
@@ -136,17 +141,28 @@ void loop() {
             }
 
             Serial.print("-");
-
             if (nodes[i].ttl >= now) {
                 Serial.print("on");
             } else {
                 Serial.print("off");
-                sendRequest(nodes[i].address);
+                if (offlineNode == nullptr || offlineNode->ttl > nodes[i].ttl) {
+                    offlineNode = &nodes[i];
+                }
             }
+            Serial.print("(");
+            Serial.print((int) ((millis() - nodes[i].lastSeen) / 1000));
+            Serial.print("s)");
         }
         Serial.println();
+
+        if (offlineNode != nullptr) {
+            Serial.print("Requested offline node 0x");
+            Serial.println(offlineNode->address, HEX);
+
+            offlineNode->ttl = millis();
+            sendRequest(offlineNode->address);
+        }
+
         onlineStopwatch.reset();
     }
-
-
 }

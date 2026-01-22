@@ -67,6 +67,7 @@ void WirelessCommunication::poll() {
     
     if (_rxIndicator.isTimeout()) {
         _indicator->blue(false);
+        _indicator->green(false);
         _rxIndicator.reset(0xFFFFFFFF);
     }
 }
@@ -92,12 +93,18 @@ bool WirelessCommunication::receive(WirelessPacket& pkt) {
 
 bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
     _indicator->red(true);
+    if (pkt.type == PKT_RES)
+        _indicator->green(true);
+
     WirelessPacketRaw rawPkt;
     encode(pkt, rawPkt);
     LoRa.beginPacket();
     LoRa.write((uint8_t*)&rawPkt, sizeof(WirelessPacketRaw));
     LoRa.endPacket();
+
     _indicator->red(false);
+    if (pkt.type == PKT_RES)
+        _indicator->green(false);
 
     return true;
 }
@@ -115,6 +122,8 @@ void WirelessCommunication::readPacket() {
     if (pkt.trace[0] == 0 || pkt.trace[0] > MAX_NODES) return;
 
     _indicator->blue(true);
+    if (pkt.type == PKT_RES)
+        _indicator->green(true);
     _rxIndicator.reset(LORA_TOA);
     handleIncoming(pkt);
 }
@@ -154,7 +163,7 @@ void WirelessCommunication::handleIncoming(WirelessPacket& pkt) {
         }
     }
     
-    else if (_role == ROLE_MASTER && pkt.type == PKT_RES) {
+    else if (_role == ROLE_MASTER) {
         if (pkt.hopCount > 1 || pkt.trace[0] != 0x07){
             DBGLN("[API] Packet addressed for this node");
             _rxQueue.push(pkt);
@@ -214,6 +223,11 @@ void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
     Serial.print(WirelessCommunication::computeTotalTime(pkt));
     Serial.print(F("ms "));
 
+    //SEQ
+    Serial.print(F("seq="));
+    Serial.print(pkt.seq);
+    Serial.print(" ");
+
     // Payload
     Serial.print(F("data=("));
     for (uint8_t i = 0; i < pkt.length && i < sizeof(pkt.payload); i++) {
@@ -224,15 +238,21 @@ void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
     Serial.print(F(") "));
 
     // Trace
-    Serial.print(F("S"));
-    Serial.print(pkt.initialTrace[0]);
 
-    for (uint8_t i = 1; i < pkt.hopCount && i < MAX_NODES; i++) {
-        Serial.print(F("->W"));
-        Serial.print(pkt.trace[i]-1);
+    for (uint8_t i = 0; i < pkt.hopCount && i < MAX_NODES; i++) {
+        uint8_t index = pkt.trace[i]-1;
+        if (index <= 5) {
+            Serial.print("W");
+            Serial.print(index);
+        } else {
+            Serial.print("S");
+            Serial.print(index-5);
+        }
+
+        Serial.print(F("->"));
     }
 
-    Serial.print(F("->W0"));
+    Serial.print(F("W0"));
     Serial.println();
 }
 
