@@ -57,6 +57,8 @@ void loop() {
       memcpy(dataResponse.initialTrace, pkt.trace, MAX_NODES);
       memset(dataResponse.trace, 0, MAX_NODES);
       dataResponse.trace[0] = NODE_ADDR;
+      dataResponse.to = 0x01;
+      dataResponse.seq = pkt.seq;
       radio.send(dataResponse);
   }
 }

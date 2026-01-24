@@ -75,7 +75,7 @@ void WirelessCommunication::poll() {
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
 
-    unsigned long offset = ((senderAddr - 1) * LORA_TICK) + LORA_TICK + LORA_TOA;
+    unsigned long offset = ((senderAddr - 1) * LORA_SLOT) + LORA_TICK + LORA_TOA;
 
     _anchorTime = now - offset;
     _lastTxSlotAbs = 0xFFFFFFFF;
