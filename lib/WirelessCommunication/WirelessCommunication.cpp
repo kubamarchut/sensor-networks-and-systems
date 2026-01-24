@@ -9,6 +9,7 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* in
     _lastTxSlotAbs = 0xFFFFFFFF; // Wartosc poczatkowa rozna od 0
     _syncTimeout = 0;
     _rxIndicator = Stopwatch(0xFFFFFFFF);
+    _lastSyncTime = millis() - LORA_ROUND;
 
     memset(_lastSeq, 0, sizeof(_lastSeq));
 
@@ -74,12 +75,15 @@ void WirelessCommunication::poll() {
 
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
+    if (_lastSyncTime + (0.9 * LORA_ROUND) < now){
+        unsigned long offset = ((senderAddr - 1) * LORA_SLOT) + LORA_TICK + LORA_TOA;
 
-    unsigned long offset = ((senderAddr - 1) * LORA_SLOT) + LORA_TICK + LORA_TOA;
-
-    _anchorTime = now - offset;
-    _lastTxSlotAbs = 0xFFFFFFFF;
-    _syncTimeout = now + LORA_SLOT * MAX_NODES * 4;
+        _anchorTime = now - offset;
+        _lastTxSlotAbs = 0xFFFFFFFF;
+        _syncTimeout = now + LORA_SLOT * MAX_NODES * 4;
+        
+        _lastSyncTime = millis();
+    }
 }
 
 bool WirelessCommunication::send(const WirelessPacket& pkt) {
@@ -112,7 +116,10 @@ bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
 void WirelessCommunication::readPacket() {
     int packetSize = LoRa.parsePacket();
     if (packetSize == 0) return;
-    if (packetSize > sizeof(WirelessPacketRaw)) return;
+    if (packetSize != sizeof(WirelessPacketRaw)) {
+        DBGLN("[API] [ERR] received some data -> discarded wrong size");
+        return;
+    }
 
     WirelessPacketRaw rawPkt;
     WirelessPacket pkt;

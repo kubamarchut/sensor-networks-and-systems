@@ -66,6 +66,7 @@ void receiveResponse() {
 
 void sendRequest(uint8_t address) {
     WirelessPacket pkt;
+    memset(&pkt, 0, sizeof(WirelessPacket));
     memset(pkt.trace, 0, MAX_NODES);
     memset(pkt.initialTrace, 0, MAX_NODES);
     memset(pkt.payload, 0, 8);

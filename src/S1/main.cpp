@@ -106,6 +106,7 @@ void loop() {
 
       readData();
       WirelessPacket dataResponse;
+      memset(&dataResponse, 0, sizeof(WirelessPacket));
       dataResponse.type = PKT_RES;
       memset(dataResponse.payload, 0, 8);
       dataResponse.length = 3;

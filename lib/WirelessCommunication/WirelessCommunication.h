@@ -69,6 +69,7 @@ public:
     unsigned long _lastTxSlotAbs;
     Indicator* _indicator;
     Stopwatch _rxIndicator;
+    unsigned long _lastSyncTime;
 
     Queue<WirelessPacket, QUEUE_SIZE> _txQueue;
     Queue<WirelessPacket, QUEUE_SIZE> _rxQueue;
