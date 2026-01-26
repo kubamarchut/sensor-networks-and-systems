@@ -14,6 +14,10 @@
 #define S3_PIN 1
 #define OUT_PIN 5
 
+#define LORA_DEBUG
+
+#define POWER_PIN 12
+
 #ifndef FAKE_SENSOR
 TCS3200 tcs3200(S0_PIN, S1_PIN, S2_PIN, S3_PIN, OUT_PIN);
 #endif
@@ -46,12 +50,14 @@ void performMeasurement(RGB &color) {
 #endif
 
 void readData() {
-  delay(100);
   #ifdef FAKE_SENSOR
   updateRGBWithDelta(currentColor, 5);
   #endif
   #ifndef FAKE_SENSOR
+  digitalWrite(POWER_PIN, HIGH);
+  delay(100);
   performMeasurement(currentColor);
+  digitalWrite(POWER_PIN, LOW);
   #endif
 }
 
@@ -77,11 +83,15 @@ void setup() {
   #endif
 
   #ifndef FAKE_SENSOR
+  pinMode(POWER_PIN, OUTPUT);
+  digitalWrite(POWER_PIN, HIGH);
   tcs3200.begin();
   tcs3200.frequency_scaling(TCS3200_OFREQ_2P);
   tcs3200.calibrate_light(1367, 1993, 1723);
   tcs3200.calibrate_dark(10269, 19202, 17411);
   tcs3200.calibrate();
+
+  digitalWrite(POWER_PIN, LOW);
   #endif
 
   Serial.print("S");
@@ -103,6 +113,9 @@ void loop() {
   if (radio.receive(pkt)) {
       Serial.print("Received packet ");
       Serial.println(pkt.type);
+
+      Serial.print("pkt.to: ");
+      Serial.println(pkt.to);
 
       readData();
       WirelessPacket dataResponse;
