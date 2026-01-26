@@ -10,7 +10,7 @@
 
 Indicator indicator(9, 10, 11);
 WirelessCommunication radio;
-Stopwatch requestStopwatch(5000);
+Stopwatch requestStopwatch(10000);
 Stopwatch onlineStopwatch(5000);
 
 uint16_t seq;
@@ -59,7 +59,7 @@ void receiveResponse() {
             }
         }
 
-
+        Serial.print("RX ");
         WirelessCommunication::dumpPacket(pkt);
     }
 }
@@ -78,6 +78,8 @@ void sendRequest(uint8_t address) {
     pkt.length = 0;
 
     radio.send(pkt);
+    Serial.print("TX ");
+    WirelessCommunication::dumpPacket(pkt);
 }
 
 void setup() {
@@ -122,9 +124,7 @@ void loop() {
     if (requestStopwatch.isTimeout()) {
         sendRequest(0x07);
         requestStopwatch.reset();
-    }
-
-    if (onlineStopwatch.isTimeout()) {
+    } else if (onlineStopwatch.isTimeout()) {
         uint32_t now = millis();
 
         WirelessNode *offlineNode = nullptr;

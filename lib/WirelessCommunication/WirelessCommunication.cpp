@@ -55,8 +55,9 @@ void WirelessCommunication::poll() {
         WirelessPacket pkt;
 
         if (_txQueue.pop(pkt)) {
-            uint32_t packetTime = millis();
             writePacket(pkt);
+
+            uint32_t packetTime = millis();
             DBG("[TX] Sent packet ");
             DBG(millis() - packetTime);
             DBGLN(" ms");
@@ -75,12 +76,12 @@ void WirelessCommunication::poll() {
 
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
-    if (_lastSyncTime + (0.9 * LORA_ROUND) < now){
+    if (_lastSyncTime + (0.9 * LORA_ROUND) < now) {
         unsigned long offset = ((senderAddr - 1) * LORA_SLOT) + LORA_TICK + LORA_TOA;
 
         _anchorTime = now - offset;
         _lastTxSlotAbs = 0xFFFFFFFF;
-        _syncTimeout = now + LORA_SLOT * MAX_NODES * 4;
+        _syncTimeout = now + LORA_ROUND * 4;
         
         _lastSyncTime = millis();
     }
@@ -224,6 +225,10 @@ void WirelessCommunication::decode(const WirelessPacketRaw& raw, WirelessPacket&
 
 void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
     Serial.print(F("PKT "));
+    switch (pkt.type) {
+        case PKT_RES: Serial.print(F("RES ")); break;
+        case PKT_REQ: Serial.print(F("REQ ")); break;
+    }
 
     // Inter-transmission time (example: using seq)
     Serial.print(F("Itc="));
@@ -246,7 +251,11 @@ void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
 
     // Trace
 
+    Serial.print("trace=");
     for (uint8_t i = 0; i < pkt.hopCount && i < MAX_NODES; i++) {
+        if (i != 0)
+            Serial.print(F("->"));
+
         uint8_t index = pkt.trace[i]-1;
         if (index <= 5) {
             Serial.print("W");
@@ -255,11 +264,18 @@ void WirelessCommunication::dumpPacket(WirelessPacket& pkt){
             Serial.print("S");
             Serial.print(index-5);
         }
-
-        Serial.print(F("->"));
     }
 
-    Serial.print(F("W0"));
+    Serial.print(" to=");
+    uint8_t to = pkt.to-1;
+    if (to <= 5) {
+        Serial.print("W");
+        Serial.print(to);
+    } else {
+        Serial.print("S");
+        Serial.print(to-5);
+    }
+
     Serial.println();
 }
 

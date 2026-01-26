@@ -6,7 +6,7 @@
 #include "Stopwatch.h"
 
 #define MAX_NODES   8
-#define QUEUE_SIZE  8
+#define QUEUE_SIZE  16
 #define LORA_FREQ   868E6
 #define LORA_TOA    (330 + 4)
 #define LORA_TICK   (LORA_TOA / 3)
