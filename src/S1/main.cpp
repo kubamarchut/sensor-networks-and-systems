@@ -87,8 +87,33 @@ void setup() {
   digitalWrite(POWER_PIN, HIGH);
   tcs3200.begin();
   tcs3200.frequency_scaling(TCS3200_OFREQ_2P);
-  tcs3200.calibrate_light(1367, 1993, 1723);
-  tcs3200.calibrate_dark(10269, 19202, 17411);
+
+  // delay(3000);
+  // Serial.println("Calibrating white...");
+  
+  // uint32_t r = tcs3200.read_red();
+  // uint32_t g = tcs3200.read_green();
+  // uint32_t b = tcs3200.read_blue();
+
+  // Serial.print("R: "); Serial.print(r);
+  // Serial.print("  G: "); Serial.print(g);
+  // Serial.print("  B: "); Serial.println(b);
+  
+  // Serial.println("White calibration done");
+  
+  // delay(3000);
+  // Serial.println("Calibrating black...");
+
+  // r = tcs3200.read_red();
+  // g = tcs3200.read_green();
+  // b = tcs3200.read_blue();
+ 
+  // Serial.print("R: "); Serial.print(r);
+  // Serial.print("  G: "); Serial.print(g);
+  // Serial.print("  B: "); Serial.println(b);
+
+  tcs3200.calibrate_light(488, 771, 673);
+  tcs3200.calibrate_dark(3190, 5601, 5004);
   tcs3200.calibrate();
 
   digitalWrite(POWER_PIN, LOW);
