@@ -123,7 +123,7 @@ bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
 
     if (pkt.type == PKT_REQ || pkt.trace[0] != _nodeAddr)
         _indicator->red(false);
-    if (pkt.type == PKT_RES && pkt.trace[0] == _nodeAddr)
+    if (pkt.type == PKT_RES)
         _indicator->green(false);
 
     return true;
