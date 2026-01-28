@@ -53,7 +53,7 @@ void WirelessCommunication::poll() {
     bool isTxWindow = (timeInSlot >= windowStart && timeInSlot < windowEnd);
     bool isMySlot = (currentSlotOwner == _nodeAddr);
 
-    if (_onRoundStart != nullptr & currentSlotOwner == _nodeAddr) {
+    if (_onRoundStart != nullptr && currentSlotOwner == _nodeAddr) {
         if (absSlot != _lastCallbackSlotAbs){
             _onRoundStart();
             _lastCallbackSlotAbs = absSlot;

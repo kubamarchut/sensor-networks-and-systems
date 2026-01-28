@@ -55,7 +55,7 @@ void readData() {
   #endif
   #ifndef FAKE_SENSOR
   digitalWrite(POWER_PIN, HIGH);
-  delay(10);
+  delay(100);
   performMeasurement(currentColor);
   digitalWrite(POWER_PIN, LOW);
   #endif
