@@ -1,6 +1,4 @@
-
 #include <Arduino.h>
-#include "morslib.h"
 #include "WirelessCommunication.h"
 #include "Stopwatch.h"
 
@@ -10,8 +8,8 @@
 
 Indicator indicator(9, 10, 11);
 WirelessCommunication radio;
-Stopwatch requestStopwatch(10000);
-Stopwatch onlineStopwatch(5000);
+Stopwatch requestStopwatch(4*LORA_ROUND);
+Stopwatch onlineStopwatch(2*LORA_ROUND);
 
 uint16_t seq;
 
@@ -29,7 +27,41 @@ WirelessNode nodes[] = {
     { .address = 0x07, .ttl = 0, .lastSeen = 0 },
 };
 
-morslib mymors(LED_BUILTIN, 200);
+void printNodes() {
+    uint32_t now = millis();
+
+    for (int i = 0; i < (sizeof(nodes)/sizeof(WirelessNode)); i++) {
+        if (nodes[i].address == 0)
+            break;
+
+        uint8_t index = nodes[i].address-1;
+        if (index <= 5) {
+            Serial.print("W");
+            Serial.print(index);
+        } else {
+            Serial.print("S");
+            Serial.print(index-5);
+        }
+
+        Serial.print("-");
+        if (nodes[i].lastSeen+20000 >= now) {
+            Serial.print("on ");
+        } else {
+            Serial.print("off");
+        }
+        uint16_t elapsed = (int) ((millis() - nodes[i].lastSeen) / 1000);
+
+        Serial.print("(");
+        if (elapsed < 1000)
+            Serial.print(" ");
+        if (elapsed < 100)
+            Serial.print(" ");
+        if (elapsed < 10)
+            Serial.print(" ");
+        Serial.print(elapsed);
+        Serial.print("s) ");
+    }
+}
 
 void receiveResponse() {
     WirelessPacket pkt;
@@ -59,7 +91,8 @@ void receiveResponse() {
             }
         }
 
-        Serial.print("RX ");
+        printNodes();
+        Serial.print(" RX ");
         WirelessCommunication::dumpPacket(pkt);
     }
 }
@@ -78,12 +111,13 @@ void sendRequest(uint8_t address) {
     pkt.length = 0;
 
     radio.send(pkt);
-    Serial.print("TX ");
+
+    printNodes();
+    Serial.print(" TX ");
     WirelessCommunication::dumpPacket(pkt);
 }
 
 void setup() {
-    mymors.begin();
     randomSeed(analogRead(A0));
     indicator.begin();
     indicator.setColor(Indicator::RED);
@@ -100,7 +134,7 @@ void setup() {
         digitalWrite(LED_BUILTIN, HIGH);
         delay(1000);
         digitalWrite(LED_BUILTIN, LOW);
-        delay(500);
+        delay(250);
     }
     Serial.print("W");
     Serial.print(NODE_ADDR - 1);
@@ -113,11 +147,9 @@ void setup() {
 
     Serial.println("Inicjalizacja radio udana");
     seq = random();
-    mymors.queue('s');
 }
 
 void loop() {
-    mymors.handle();
     radio.poll();
     receiveResponse();
 
@@ -132,36 +164,18 @@ void loop() {
             if (nodes[i].address == 0)
                 break;
 
-            uint8_t index = nodes[i].address-1;
-            if (index <= 5) {
-                Serial.print(" W");
-                Serial.print(index);
-            } else {
-                Serial.print(" S");
-                Serial.print(index-5);
-            }
-
-            Serial.print("-");
-            if (nodes[i].ttl >= now) {
-                Serial.print("on");
-            } else {
-                Serial.print("off");
+            if (nodes[i].ttl < now) {
                 if (offlineNode == nullptr || offlineNode->ttl > nodes[i].ttl) {
                     offlineNode = &nodes[i];
                 }
             }
-            Serial.print("(");
-            Serial.print((int) ((millis() - nodes[i].lastSeen) / 1000));
-            Serial.print("s)");
         }
-        Serial.println();
 
         if (offlineNode != nullptr) {
-//            Serial.print("Requested offline node 0x");
-//            Serial.println(offlineNode->address, HEX);
-
             offlineNode->ttl = millis();
             sendRequest(offlineNode->address);
+            if (offlineNode->address == 0x07)
+                requestStopwatch.reset();
         }
 
         onlineStopwatch.reset();
