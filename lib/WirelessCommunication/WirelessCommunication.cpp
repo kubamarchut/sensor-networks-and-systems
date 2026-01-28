@@ -10,6 +10,8 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* in
     _syncTimeout = 0;
     _rxIndicator = Stopwatch(0xFFFFFFFF);
     _lastSyncTime = millis() - LORA_ROUND;
+    _lastCallbackSlotAbs = 0xFFFFFFFF;
+    _onRoundStart = nullptr;
 
     memset(_lastSeq, 0, sizeof(_lastSeq));
 
@@ -31,6 +33,10 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* in
     return true;
 }
 
+void WirelessCommunication::setRoundStartCallback(RoundStartCallback cb) {
+    _onRoundStart = cb;
+}
+
 void WirelessCommunication::poll() {
     readPacket();
 
@@ -46,6 +52,13 @@ void WirelessCommunication::poll() {
 
     bool isTxWindow = (timeInSlot >= windowStart && timeInSlot < windowEnd);
     bool isMySlot = (currentSlotOwner == _nodeAddr);
+
+    if (_onRoundStart != nullptr & currentSlotOwner == _nodeAddr) {
+        if (absSlot != _lastCallbackSlotAbs){
+            _onRoundStart();
+            _lastCallbackSlotAbs = absSlot;
+        }
+    }
 
     // Warunek transmisji:
     // 1. Jest mój slot
@@ -140,21 +153,20 @@ void WirelessCommunication::handleIncoming(WirelessPacket& pkt) {
     DBGLN("[API] Received packet");
 
     if (_role == ROLE_SLAVE) {
+        uint32_t now = millis();
+        if (_history.contains(pkt.type, pkt.seq, now)) {
+            return;
+        }
         if (pkt.type == PKT_REQ){
             DBGLN("[API] Synchronization");
             syncNetwork(pkt.trace[pkt.hopCount - 1]);
 
             if (pkt.to == _nodeAddr){
                 DBGLN("[API] Packet addressed for this node");
+                _history.add(pkt.type, pkt.seq, 3 * LORA_ROUND, now);
                 _rxQueue.push(pkt);
                 return;
             }
-        }
-        // mechanizm weryfikacji czy wiadomość była już retransmitowana przez ten węzeł        
-        uint32_t now = millis();
-
-        if (_history.contains(pkt.type, pkt.seq, now)) {
-            return;
         }
         for (int i = 0; i < MAX_NODES; i++) {
             if (pkt.trace[i] == _nodeAddr) {

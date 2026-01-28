@@ -5,13 +5,15 @@
 #include "Indicator.h"
 #include "Stopwatch.h"
 
-#define MAX_NODES   8
-#define QUEUE_SIZE  16
-#define LORA_FREQ   868E6
-#define LORA_TOA    (330 + 4)
-#define LORA_TICK   (LORA_TOA / 3)
-#define LORA_SLOT   (LORA_TICK * 5)
-#define LORA_ROUND  (LORA_SLOT * MAX_NODES)
+#define MAX_NODES           8
+#define TX_QUEUE_SIZE       4
+#define RX_QUEUE_SIZE       8
+#define HIS_QUEUE_SIZE      16
+#define LORA_FREQ           868E6
+#define LORA_TOA            (330 + 4)
+#define LORA_TICK           (LORA_TOA / 3)
+#define LORA_SLOT           (LORA_TICK * 5)
+#define LORA_ROUND          (LORA_SLOT * MAX_NODES)
 
 #ifdef LORA_DEBUG
   #define DBG(x)    Serial.print(x)
@@ -52,6 +54,8 @@ struct __attribute__((packed)) WirelessPacket {
     uint8_t payload[8];
 };
 
+typedef void ( *RoundStartCallback)();
+
 class WirelessCommunication {
 public:
     bool begin(uint8_t nodeAddr, NodeRole role, Indicator* indicator);
@@ -59,6 +63,7 @@ public:
     bool send(const WirelessPacket& pkt);
     bool receive(WirelessPacket& pkt);
     static void dumpPacket(WirelessPacket& pkt);
+    void setRoundStartCallback(RoundStartCallback cb);
     
     private:
     uint8_t _nodeAddr;
@@ -70,10 +75,13 @@ public:
     Indicator* _indicator;
     Stopwatch _rxIndicator;
     unsigned long _lastSyncTime;
+    
+    unsigned long _lastCallbackSlotAbs;
+    RoundStartCallback _onRoundStart;
 
-    Queue<WirelessPacket, QUEUE_SIZE> _txQueue;
-    Queue<WirelessPacket, QUEUE_SIZE> _rxQueue;
-    HistoryBuffer<QUEUE_SIZE> _history;
+    Queue<WirelessPacket, TX_QUEUE_SIZE> _txQueue;
+    Queue<WirelessPacket, RX_QUEUE_SIZE> _rxQueue;
+    HistoryBuffer<HIS_QUEUE_SIZE> _history;
     uint8_t _lastSeq[MAX_NODES];
     uint32_t _syncTimeout;
     
