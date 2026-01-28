@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include "Crc8.h"
-#include "morslib.h"
 #include "WirelessCommunication.h"
 
 WirelessCommunication radio;
@@ -10,11 +8,8 @@ WirelessCommunication radio;
 #endif
 
 Indicator indicator(9, 10, 11);
-morslib mymors(LED_BUILTIN, 200);
 
 void setup() {
-  mymors.begin();
-
   randomSeed(analogRead(A0));
   indicator.begin();
   indicator.setColor(Indicator::RED);
@@ -37,13 +32,9 @@ void setup() {
     }
 
     Serial.println("Inicjalizacja radio udana");
-  
-  mymors.queue('s');
 }
 
 void loop() {
-  mymors.handle();
-
   radio.poll();
   WirelessPacket pkt;
   if (radio.receive(pkt)) {

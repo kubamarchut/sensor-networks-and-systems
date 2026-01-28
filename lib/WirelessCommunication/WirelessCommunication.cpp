@@ -7,9 +7,9 @@ bool WirelessCommunication::begin(uint8_t nodeAddr, NodeRole role, Indicator* in
 
     _anchorTime = millis();
     _lastTxSlotAbs = 0xFFFFFFFF; // Wartosc poczatkowa rozna od 0
-    _syncTimeout = 0;
+    _syncTimeout = millis() + 5 * LORA_ROUND;
     _rxIndicator = Stopwatch(0xFFFFFFFF);
-    _lastSyncTime = millis() - LORA_ROUND;
+    _lastSyncTime = millis();
     _lastCallbackSlotAbs = 0xFFFFFFFF;
     _onRoundStart = nullptr;
 
@@ -40,15 +40,19 @@ void WirelessCommunication::setRoundStartCallback(RoundStartCallback cb) {
 void WirelessCommunication::poll() {
     readPacket();
 
-    unsigned long now = millis();
+    unsigned long now = millis() + 5 * LORA_ROUND;
     unsigned long elapsed = now - _anchorTime;
 
     unsigned long absSlot = elapsed / LORA_SLOT;
     unsigned long timeInSlot = elapsed % LORA_SLOT;
+    unsigned long slotInRound = absSlot % MAX_NODES;
+    digitalWrite(LED_BUILTIN, (slotInRound % 2) ? HIGH : LOW);
 
     uint8_t currentSlotOwner = (absSlot % MAX_NODES) + 1;
     uint32_t windowStart = LORA_TICK;
     uint32_t windowEnd = LORA_TICK * 2;
+
+
 
     bool isTxWindow = (timeInSlot >= windowStart && timeInSlot < windowEnd);
     bool isMySlot = (currentSlotOwner == _nodeAddr);
@@ -89,10 +93,11 @@ void WirelessCommunication::poll() {
 
 void WirelessCommunication::syncNetwork(uint8_t senderAddr) {
     unsigned long now = millis();
+
     if (_lastSyncTime + (0.9 * LORA_ROUND) < now) {
         unsigned long offset = ((senderAddr - 1) * LORA_SLOT) + LORA_TICK + LORA_TOA;
 
-        _anchorTime = now - offset;
+        _anchorTime = now + 5 * LORA_ROUND - offset;
         _lastTxSlotAbs = 0xFFFFFFFF;
         _syncTimeout = now + LORA_ROUND * 4;
         

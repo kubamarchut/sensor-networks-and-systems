@@ -71,7 +71,8 @@ void setup() {
   indicator.setColor(Indicator::BLUE);
   delay(1000);
   indicator.setColor(Indicator::OFF);
-  
+
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
   #ifdef LORA_DEBUG
     while (!Serial){
