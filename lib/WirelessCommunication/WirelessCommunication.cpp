@@ -110,7 +110,8 @@ bool WirelessCommunication::receive(WirelessPacket& pkt) {
 }
 
 bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
-    _indicator->red(true);
+    if (pkt.type == PKT_REQ || pkt.trace[0] != _nodeAddr)
+        _indicator->red(true);
     if (pkt.type == PKT_RES)
         _indicator->green(true);
 
@@ -120,8 +121,9 @@ bool WirelessCommunication::writePacket(WirelessPacket& pkt) {
     LoRa.write((uint8_t*)&rawPkt, sizeof(WirelessPacketRaw));
     LoRa.endPacket();
 
-    _indicator->red(false);
-    if (pkt.type == PKT_RES)
+    if (pkt.type == PKT_REQ || pkt.trace[0] != _nodeAddr)
+        _indicator->red(false);
+    if (pkt.type == PKT_RES && pkt.trace[0] == _nodeAddr)
         _indicator->green(false);
 
     return true;

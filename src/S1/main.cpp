@@ -14,7 +14,7 @@
 #define S3_PIN 1
 #define OUT_PIN 5
 
-#define LORA_DEBUG
+//#define LORA_DEBUG
 
 #define POWER_PIN 12
 
@@ -55,7 +55,7 @@ void readData() {
   #endif
   #ifndef FAKE_SENSOR
   digitalWrite(POWER_PIN, HIGH);
-  delay(100);
+  delay(10);
   performMeasurement(currentColor);
   digitalWrite(POWER_PIN, LOW);
   #endif
